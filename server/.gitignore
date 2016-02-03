@@ -3,3 +3,5 @@ _rel
 .erlang.mk/
 *.o
 *.beam
+*.d
+*.so
