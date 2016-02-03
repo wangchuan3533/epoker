@@ -3,26 +3,26 @@
 
 static ERL_NIF_TERM eval(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    unsigned int len, i, value;
+    unsigned int value;
     unsigned char cards[7];
-    ERL_NIF_TERM list, head, tail, score, mask;
+    int i, len;
+
+    const ERL_NIF_TERM *array;
+    ERL_NIF_TERM score, mask;
     hand_rank_t result;
     
-    if (!enif_get_list_length(env, argv[0], &len)) {
+    if (!enif_get_tuple(env, argv[0], &len, &array)) {
         return enif_make_badarg(env);
     }
-    if (len != 7) {
-        return enif_make_badarg(env);
-    }
-    
-    for (list = argv[0], i = 0; enif_get_list_cell(env, list, &head, &tail); list = tail) {
-        if (!enif_get_uint(env, head, &value)) {
+
+    for (i = 0; i < len; i++) {
+        if (!enif_get_uint(env, array[i], &value)) {
             return enif_make_badarg(env);
         }
         cards[i++] = value;
     }
     
-    result = calc_rank(cards);
+    result = calc_rank(cards, len);
     score = enif_make_uint(env, result.score);
     mask = enif_make_uint(env, result.mask);
       
