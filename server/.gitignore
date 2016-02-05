@@ -1,6 +1,7 @@
 deps
 _rel
 .erlang.mk/
+c_src/env.mk
 *.o
 *.beam
 *.d
