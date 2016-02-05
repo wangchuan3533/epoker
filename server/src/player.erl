@@ -1,42 +1,82 @@
 -module(player).
--behaviour(gen_server).
+-behaviour(gen_fsm).
+-include("holdem.hrl").
 
 %% API.
--export([start_link/0]).
+-export([new/0, stop/1, join/2, leave/1]).
+-export([dump/1]).
 
-%% gen_server.
+%% gen_fsm.
 -export([init/1]).
--export([handle_call/3]).
--export([handle_cast/2]).
--export([handle_info/2]).
--export([terminate/2]).
--export([code_change/3]).
+-export([lobby/2, playing/2]).
+-export([lobby/3, playing/3]).
+-export([handle_event/3]).
+-export([handle_sync_event/4]).
+-export([handle_info/3]).
+-export([terminate/3]).
+-export([code_change/4]).
 
 -record(state, {
+  game = undefined
 }).
 
 %% API.
+new() ->
+	{ok, Pid} = gen_fsm:start_link(?MODULE, [], []),
+  #player{pid = Pid}.
 
--spec start_link() -> {ok, pid()}.
-start_link() ->
-	gen_server:start_link(?MODULE, [], []).
+stop(#player{pid = Pid}) ->
+  gen_fsm:stop(Pid).
 
-%% gen_server.
+join(Game, #player{pid = Pid}) ->
+  gen_fsm:sync_send_event(Pid, {join, Game}).
+  
+leave(#player{pid = Pid}) ->
+  gen_fsm:sync_send_event(Pid, leave).
+  
+dump(#player{pid = Pid}) ->
+  gen_fsm:sync_send_all_state_event(Pid, dump).
 
+%% gen_fsm.
 init([]) ->
-	{ok, #state{}}.
+	{ok, lobby, #state{}}.
 
-handle_call(_Request, _From, State) ->
-	{reply, ignored, State}.
+lobby(_Event, StateData) ->
+	{next_state, lobby, StateData}.
 
-handle_cast(_Msg, State) ->
-	{noreply, State}.
+lobby({join, Game = #game{}}, _From, StateData) ->
+  NewStateData = StateData#state{game = Game},
+  ok = Game:add_player(#player{pid = self()}),
+	{reply, ok, playing, NewStateData};
+  
+lobby(_Event, _From, StateData) ->
+	{reply, ignored, lobby, StateData}.
+  
+playing(_Event, StateData) ->
+	{next_state, playing, StateData}.
 
-handle_info(_Info, State) ->
-	{noreply, State}.
+playing(leave, _From, StateData = #state{game = Game}) ->
+  ok = Game:del_player(#player{pid = self()}),
+  NewStateData = StateData#state{game = undefined},
+	{reply, ok, lobby, NewStateData};
+playing(_Event, _From, StateData) ->
+	{reply, ignored, playing, StateData}.
 
-terminate(_Reason, _State) ->
+handle_event(_Event, StateName, StateData) ->
+	{next_state, StateName, StateData}.
+
+%% dump
+handle_sync_event(dump, _From, StateName, StateData) ->
+	{reply, {StateName, StateData}, StateName, StateData};
+  
+handle_sync_event(_Event, _From, StateName, StateData) ->
+	{reply, ignored, StateName, StateData}.
+
+handle_info(_Info, StateName, StateData) ->
+	{next_state, StateName, StateData}.
+
+terminate(_Reason, _StateName, _StateData) ->
 	ok.
 
-code_change(_OldVsn, State, _Extra) ->
-	{ok, State}.
+code_change(_OldVsn, StateName, StateData, _Extra) ->
+	{ok, StateName, StateData}.

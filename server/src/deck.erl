@@ -1,8 +1,9 @@
 -module(deck).
 -behaviour(gen_fsm).
+-include("holdem.hrl").
 
 %% API.
--export([start_link/0]).
+-export([new/0, stop/1, get_card/1]).
 
 %% gen_fsm.
 -export([init/1]).
@@ -17,17 +18,21 @@
 -export([code_change/4]).
 
 -record(state, {
-  cards = lists:seq(0, 5)
+  cards = lists:seq(0, 51)
 }).
 
 %% API.
+new() ->
+  {ok, Pid} = gen_fsm:start_link(?MODULE, [], []),
+  #deck{pid = Pid}.
 
--spec start_link() -> {ok, pid()}.
-start_link() ->
-	gen_fsm:start_link({local, ?MODULE}, ?MODULE, [], []).
+stop(#deck{pid = Pid}) ->
+  gen_fsm:stop(Pid).
+
+get_card(#deck{pid = Pid}) ->
+  gen_fsm:sync_send_event(Pid, get).
 
 %% gen_fsm.
-
 init([]) ->
 	{ok, available, #state{}}.
 
