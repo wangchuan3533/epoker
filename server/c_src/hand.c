@@ -18,9 +18,9 @@ static struct {
     {NULL, 0},
     {NULL, 0},
     {NULL, 0},
-    {masks5, 1},
-    {masks6, 6},
-    {masks7, 21},
+    {masks5, sizeof(masks5) / sizeof(unsigned int)},
+    {masks6, sizeof(masks6) / sizeof(unsigned int)},
+    {masks7, sizeof(masks6) / sizeof(unsigned int)},
 };
 
 unsigned int _calc_rank(card_t *cards);

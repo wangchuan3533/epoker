@@ -4,7 +4,7 @@
 
 %% API.
 -export([new/0, stop/1, join/2, leave/1]).
--export([dump/1]).
+-export([dump/1, test/0]).
 
 %% gen_fsm.
 -export([init/1]).
@@ -17,7 +17,8 @@
 -export([code_change/4]).
 
 -record(state, {
-  game = undefined
+  game = undefined,
+  chips = 10000
 }).
 
 %% API.
@@ -34,9 +35,6 @@ join(Game, #player{pid = Pid}) ->
 leave(#player{pid = Pid}) ->
   gen_fsm:sync_send_event(Pid, leave).
   
-dump(#player{pid = Pid}) ->
-  gen_fsm:sync_send_all_state_event(Pid, dump).
-
 %% gen_fsm.
 init([]) ->
 	{ok, lobby, #state{}}.
@@ -80,3 +78,21 @@ terminate(_Reason, _StateName, _StateData) ->
 
 code_change(_OldVsn, StateName, StateData, _Extra) ->
 	{ok, StateName, StateData}.
+
+%% test
+
+dump(#player{pid = Pid}) ->
+  gen_fsm:sync_send_all_state_event(Pid, dump).
+
+test() ->
+  test_join().
+
+test_join() ->
+  P = player:new(),
+  {lobby, #state{game = undefined}} = P:dump(),
+  G = game:new(),
+  P:join(G),
+  {playing, #state{game = G}} = P:dump(),
+  ok = P:leave(),
+  G:stop(),
+  P:stop().

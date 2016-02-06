@@ -6,7 +6,7 @@
 -export([new/0, stop/1, add_player/2, del_player/2]).
 
 %% test
--export([dump/1, test/0, test2/0]).
+-export([dump/1, test/0]).
 
 %% gen_fsm.
 -export([init/1]).
@@ -20,58 +20,16 @@
 
 -record(state, {
   waiting_players = [],
-  playing_players = []
+  playing_players = [],
+  seats = [],
+  pots = [],
+  buy_in = 4000,
+  small_blind = 100,
+  big_blind = 200,
+  dealer = 0,
+  turn = 0,
+  bet = 0
 }).
-
-%% test
-test() ->
-  Game = game:new(),
-  {waiting, #state{waiting_players = [], playing_players = []}} = Game:dump(),
-  ok = Game:add_player(a),
-  {waiting, #state{waiting_players = [a], playing_players = []}} = Game:dump(),
-  ok = Game:add_player(b),
-  {preflop, #state{waiting_players = [], playing_players = [b, a]}} = Game:dump(),
-  ok = Game:add_player(c),
-  {preflop, #state{waiting_players = [c], playing_players = [b, a]}} = Game:dump(),
-  ok = Game:add_player(d),
-  {preflop, #state{waiting_players = [d, c], playing_players = [b, a]}} = Game:dump(),
-  ok = Game:add_player(e),
-  {preflop, #state{waiting_players = [e, d, c], playing_players = [b, a]}} = Game:dump(),
-  ok = Game:add_player(f),
-  {preflop, #state{waiting_players = [f, e, d, c], playing_players = [b, a]}} = Game:dump(),
-  ok = Game:add_player(g),
-  {preflop, #state{waiting_players = [g, f, e, d, c], playing_players = [b, a]}} = Game:dump(),
-  ok = Game:add_player(h),
-  {preflop, #state{waiting_players = [h, g, f, e, d, c], playing_players = [b, a]}} = Game:dump(),
-  ok = Game:add_player(i),
-  {preflop, #state{waiting_players = [i, h, g, f, e, d, c], playing_players = [b, a]}} = Game:dump(),
-  ok = Game:add_player(j),
-  {preflop, #state{waiting_players = [j, i, h, g, f, e, d, c], playing_players = [b, a]}} = Game:dump(),
-  full = Game:add_player(k),
-  {preflop, #state{waiting_players = [j, i, h, g, f, e, d, c], playing_players = [b, a]}} = Game:dump(),
-  Game:stop().
-
-test2() ->
-  P1 = player:new(),
-  P2 = player:new(),
-  P3 = player:new(),
-  G = game:new(),
-  P1:join(G),
-  {waiting, #state{waiting_players = [P1], playing_players = []}} = G:dump(),
-  {playing, {state, G}} = P1:dump(),
-  P2:join(G),
-  {preflop, #state{waiting_players = [], playing_players = [P2, P1]}} = G:dump(),
-  {playing, {state, G}} = P2:dump(),
-  P3:join(G),
-  {preflop, #state{waiting_players = [P3], playing_players = [P2, P1]}} = G:dump(),
-  {playing, {state, G}} = P3:dump(),
-  ok = P3:leave(),
-  ok = P2:leave(),
-  ok = P1:leave(),
-  G:stop(),
-  P3:stop(),
-  P2:stop(),
-  P1:stop().
 
 %% API.
 -spec new() -> #game{}.
@@ -87,9 +45,6 @@ add_player(Player, #game{pid = Pid}) ->
 
 del_player(Player, #game{pid = Pid}) ->
   gen_fsm:sync_send_all_state_event(Pid, {del, Player}).
-
-dump(#game{pid = Pid}) ->
-  gen_fsm:sync_send_all_state_event(Pid, dump).
 
 %% gen_fsm.
 
@@ -139,3 +94,39 @@ terminate(_Reason, _StateName, _StateData) ->
 
 code_change(_OldVsn, StateName, StateData, _Extra) ->
 	{ok, StateName, StateData}.
+
+
+%% tests
+dump(#game{pid = Pid}) ->
+  gen_fsm:sync_send_all_state_event(Pid, dump).
+
+test() ->
+  test_add_players().
+
+%% test
+test_add_players() ->
+  Game = game:new(),
+  {waiting, #state{waiting_players = [], playing_players = []}} = Game:dump(),
+  ok = Game:add_player(a),
+  {waiting, #state{waiting_players = [a], playing_players = []}} = Game:dump(),
+  ok = Game:add_player(b),
+  {preflop, #state{waiting_players = [], playing_players = [b, a]}} = Game:dump(),
+  ok = Game:add_player(c),
+  {preflop, #state{waiting_players = [c], playing_players = [b, a]}} = Game:dump(),
+  ok = Game:add_player(d),
+  {preflop, #state{waiting_players = [d, c], playing_players = [b, a]}} = Game:dump(),
+  ok = Game:add_player(e),
+  {preflop, #state{waiting_players = [e, d, c], playing_players = [b, a]}} = Game:dump(),
+  ok = Game:add_player(f),
+  {preflop, #state{waiting_players = [f, e, d, c], playing_players = [b, a]}} = Game:dump(),
+  ok = Game:add_player(g),
+  {preflop, #state{waiting_players = [g, f, e, d, c], playing_players = [b, a]}} = Game:dump(),
+  ok = Game:add_player(h),
+  {preflop, #state{waiting_players = [h, g, f, e, d, c], playing_players = [b, a]}} = Game:dump(),
+  ok = Game:add_player(i),
+  {preflop, #state{waiting_players = [i, h, g, f, e, d, c], playing_players = [b, a]}} = Game:dump(),
+  ok = Game:add_player(j),
+  {preflop, #state{waiting_players = [j, i, h, g, f, e, d, c], playing_players = [b, a]}} = Game:dump(),
+  full = Game:add_player(k),
+  {preflop, #state{waiting_players = [j, i, h, g, f, e, d, c], playing_players = [b, a]}} = Game:dump(),
+  Game:stop().
