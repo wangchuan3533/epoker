@@ -1,42 +1,60 @@
 #include "hand.h"
 #include <stdio.h>
-#define NUM_MASKS (sizeof(masks) / sizeof(unsigned int))
 
-hand_rank_t _calc_rank(hand_t hand);
-static unsigned int masks[] = {
+static unsigned int masks5[] = {0x1f};
+static unsigned int masks6[] = {0x1f, 0x2f, 0x37, 0x3b, 0x3d, 0x3e};
+static unsigned int masks7[] = {
     0x1f, 0x2f, 0x37, 0x3b, 0x3d, 0x3e, 0x4f,
     0x57, 0x5b, 0x5d, 0x5e, 0x67, 0x6b, 0x6d,
     0x6e, 0x73, 0x75, 0x76, 0x79, 0x7a, 0x7c,
 };
 
-hand_rank_t calc_rank(hand_t hand)
+static struct {
+    unsigned int *masks;
+    unsigned int n_masks;
+} masks_arr[] = {
+    {NULL, 0},
+    {NULL, 0},
+    {NULL, 0},
+    {NULL, 0},
+    {NULL, 0},
+    {masks5, sizeof(masks5) / sizeof(unsigned int)},
+    {masks6, sizeof(masks6) / sizeof(unsigned int)},
+    {masks7, sizeof(masks6) / sizeof(unsigned int)},
+};
+
+unsigned int _calc_rank(card_t *cards);
+
+hand_rank_t calc_rank(card_t *hand, unsigned int n)
 {
-    card_t cards[CARD_NUM];
-    unsigned int i, j, k;
-    hand_rank_t max_rank, rank;
+    card_t picked[CARD_NUM];
+    hand_rank_t max_rank;
+    unsigned int i, j, k, score;
+    unsigned int *masks = masks_arr[n].masks, n_masks = masks_arr[n].n_masks;
 
     max_rank.score = 0;
-    for (i = 0; i < NUM_MASKS; i++) {
-        for (j = 0, k = 0; j < HAND_NUM; j++) {
+    max_rank.mask = 0;
+    for (i = 0; i < n_masks; i++) {
+        for (j = 0, k = 0; j < n; j++) {
             if (masks[i] & (1u << j)) {
-                cards[k++] = hand[j];
+                picked[k++] = hand[j];
             }
         }
         
-        rank = _calc_rank(cards);
-        rank.mask = masks[i];
-        if (rank.score > max_rank.score) {
-            max_rank = rank;
+        score = _calc_rank(picked);
+        if (score > max_rank.score) {
+            max_rank.score = score;
+            max_rank.mask = masks[i];
         }
     }
     return max_rank;
 }
 
-hand_rank_t _calc_rank(hand_t hand)
+unsigned int _calc_rank(card_t *hand)
 {
     int i, j, numbers[CARD_BASE] = {0}, suits[4] = {0}, statistics[CARD_NUM] = {0};
     int flush = 0, straight = 0;
-    hand_rank_t rank;
+    score_t score;
 
     // prepare
     for (i = 0; i < CARD_NUM; i++) {
@@ -73,38 +91,38 @@ hand_rank_t _calc_rank(hand_t hand)
     }
 
     // calculate score
-    rank.score = 0;
+    score = 0;
     for (i = 4; i > 0; i--) {
         if (statistics[i] == 0) {
             continue;
         }
         for (j = CARD_BASE - 1; j >= 0; j--) {
             if (numbers[j] == i) {
-                rank.score <<= 4;
-                rank.score |= j;
+                score <<= 4;
+                score |= j;
             }
         }
     }
 
     // calc levels
     if (flush && straight) {
-        SET_RANK(rank.score, STRAIGHT_FLUSH);
+        SET_RANK(score, STRAIGHT_FLUSH);
     } else if (statistics[4]) {
-        SET_RANK(rank.score, FOUR_OF_A_KIND);
+        SET_RANK(score, FOUR_OF_A_KIND);
     } else if (statistics[3] && statistics[2]) {
-        SET_RANK(rank.score, FULL_HORSE);
+        SET_RANK(score, FULL_HORSE);
     } else if (flush) {
-        SET_RANK(rank.score, FLUSH);
+        SET_RANK(score, FLUSH);
     } else if (straight) {
-        SET_RANK(rank.score, STRAIGHT);
+        SET_RANK(score, STRAIGHT);
     } else if (statistics[3]) {
-        SET_RANK(rank.score, THREE_OF_A_KIND);
+        SET_RANK(score, THREE_OF_A_KIND);
     } else if (statistics[2] >= 2) {
-        SET_RANK(rank.score, TWO_PAIR);
+        SET_RANK(score, TWO_PAIR);
     } else if (statistics[2]) {
-        SET_RANK(rank.score, ONE_PAIR);
+        SET_RANK(score, ONE_PAIR);
     } else {
-        SET_RANK(rank.score, HIGH_CARD);
+        SET_RANK(score, HIGH_CARD);
     }
-    return rank;
+    return score;
 }
