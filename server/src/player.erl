@@ -17,6 +17,7 @@
 -export([code_change/4]).
 
 -record(state, {
+  table = undefined,
   game = undefined,
   chips = 10000
 }).
@@ -42,8 +43,8 @@ init([]) ->
 lobby(_Event, StateData) ->
 	{next_state, lobby, StateData}.
 
-lobby({join, Game = #game{}}, _From, StateData) ->
-  NewStateData = StateData#state{game = Game},
+lobby({join, Game = #table{}}, _From, StateData) ->
+  NewStateData = StateData#state{table = Game},
   ok = Game:add_player(#player{pid = self()}),
 	{reply, ok, playing, NewStateData};
   
@@ -53,9 +54,9 @@ lobby(_Event, _From, StateData) ->
 playing(_Event, StateData) ->
 	{next_state, playing, StateData}.
 
-playing(leave, _From, StateData = #state{game = Game}) ->
+playing(leave, _From, StateData = #state{table = Game}) ->
   ok = Game:del_player(#player{pid = self()}),
-  NewStateData = StateData#state{game = undefined},
+  NewStateData = StateData#state{table = undefined},
 	{reply, ok, lobby, NewStateData};
 playing(_Event, _From, StateData) ->
 	{reply, ignored, playing, StateData}.
@@ -89,10 +90,10 @@ test() ->
 
 test_join() ->
   P = player:new(),
-  {lobby, #state{game = undefined}} = P:dump(),
-  G = game:new(),
-  P:join(G),
-  {playing, #state{game = G}} = P:dump(),
+  {lobby, #state{table = undefined}} = P:dump(),
+  T = table:new(),
+  P:join(T),
+  {playing, #state{table = G}} = P:dump(),
   ok = P:leave(),
   G:stop(),
   P:stop().

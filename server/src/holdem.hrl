@@ -1,4 +1,5 @@
 -record(deck, {pid}).
+-record(table, {pid}).
 -record(game, {pid}).
 -record(player, {pid}).
 
