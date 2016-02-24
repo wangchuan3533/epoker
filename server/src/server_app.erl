@@ -5,6 +5,7 @@
 -export([stop/1]).
 
 start(_Type, _Args) ->
+  {ok, _Pid} = lobby:start_link(),
   Dispatch = cowboy_router:compile([
     {'_', [
       {"/", hello_handler, []},

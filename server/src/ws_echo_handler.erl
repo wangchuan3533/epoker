@@ -8,31 +8,32 @@
 -export([websocket_terminate/3]).
 
 -record(state, {
+  player
 }).
 
 init(_, _, _) ->
-  erlang:start_timer(1000, self(), <<"Hello!">>),
 	{upgrade, protocol, cowboy_websocket}.
 
 websocket_init(_, Req, _Opts) ->
 	Req2 = cowboy_req:compact(Req),
-	{ok, Req2, #state{}}.
+	{ok, Req2, #state{player = player:new()}}.
 
-websocket_handle({text, Data}, Req, State) ->
-  JsonReq = mochijson2:decode(Data),
-  JsonRep = iolist_to_binary(mochijson2:encode(JsonReq)),
-	{reply, {text, JsonRep}, Req, State};
+websocket_handle({text, Text}, Req, State = #state{player = Player}) ->
+  ok = io:format("received text message ~w~n", [Text]),
+  {struct, L} = mochijson2:decode(Text),
+  Resp = iolist_to_binary(mochijson2:encode(Player:call(maps:from_list(L)))),
+	{reply, {text, Resp}, Req, State};
 websocket_handle({binary, Data}, Req, State) ->
 	{reply, {binary, Data}, Req, State};
 websocket_handle(_Frame, Req, State) ->
 	{ok, Req, State}.
 
 websocket_info({timeout, _Ref, Msg}, Req, State) ->
-  %%erlang:start_timer(1000, self(), <<"How' you doin'?">>),
   {reply, {text, Msg}, Req, State};
-  
+
 websocket_info(_Info, Req, State) ->
 	{ok, Req, State}.
 
-websocket_terminate(_Reason, _Req, _State) ->
+websocket_terminate(_Reason, _Req, #state{player = Player}) ->
+  Player:stop(),
 	ok.

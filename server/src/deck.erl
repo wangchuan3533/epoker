@@ -3,7 +3,7 @@
 -include("holdem.hrl").
 
 %% API.
--export([new/0, stop/1, get_card/1]).
+-export([new/0, stop/1, call/2]).
 
 %% gen_fsm.
 -export([init/1]).
@@ -28,9 +28,9 @@ new() ->
 
 stop(#deck{pid = Pid}) ->
   gen_fsm:stop(Pid).
-
-get_card(#deck{pid = Pid}) ->
-  gen_fsm:sync_send_event(Pid, get).
+  
+call(Msg, #deck{pid = Pid}) ->
+  gen_fsm:sync_send_event(Pid, Msg).
 
 %% gen_fsm.
 init([]) ->
@@ -50,13 +50,13 @@ available(get, _From, StateData = #state{cards = Cards}) ->
     _ ->
 	    {reply, Card, available, NewStateData}
   end.
-  
+
 finished(_Event, StateData) ->
 	{next_state, finished, StateData}.
 
 finished(_Event, _From, StateData = #state{cards = []}) ->
 	{reply, finished, finished, StateData}.
-  
+
 handle_event(_Event, StateName, StateData) ->
 	{next_state, StateName, StateData}.
 

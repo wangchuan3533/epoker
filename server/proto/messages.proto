@@ -1,0 +1,17 @@
+enum MessageType {
+  JOIN_TABLE_REQ = 1;
+  JOIN_TABLE_RES = 2;
+};
+message Message {
+  required MessageType type = 1;
+  optional JoinTableReq join_table_req = 2;
+  optional JoinTableRes join_table_res = 3;
+};
+
+message JoinTableReq {
+  required uint32 table_id = 1;
+};
+
+message JoinTableRes {
+  required uint32 table_id = 1;
+};
