@@ -1,4 +1,6 @@
 deps
+ebin
+relx
 Mnesia.nonode@nohost
 _rel
 .erlang.mk/

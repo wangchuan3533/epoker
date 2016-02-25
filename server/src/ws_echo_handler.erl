@@ -1,5 +1,6 @@
 -module(ws_echo_handler).
 -behaviour(cowboy_websocket_handler).
+-include("holdem.hrl").
 
 -export([init/3]).
 -export([websocket_init/3]).
@@ -19,9 +20,9 @@ websocket_init(_, Req, _Opts) ->
 	{ok, Req2, #state{player = player:new()}}.
 
 websocket_handle({text, Text}, Req, State = #state{player = Player}) ->
-  ok = io:format("received text message ~w~n", [Text]),
-  {struct, L} = mochijson2:decode(Text),
-  Resp = iolist_to_binary(mochijson2:encode(Player:call(maps:from_list(L)))),
+  ok = io:format("received text message ~s~n", [Text]),
+  Msg = jiffy:decode(Text, [return_maps]),
+  Resp = iolist_to_binary(jiffy:encode(handle_message(Player, Msg))),
 	{reply, {text, Resp}, Req, State};
 websocket_handle({binary, Data}, Req, State) ->
 	{reply, {binary, Data}, Req, State};
@@ -37,3 +38,13 @@ websocket_info(_Info, Req, State) ->
 websocket_terminate(_Reason, _Req, #state{player = Player}) ->
   Player:stop(),
 	ok.
+
+handle_message(Player, Msg) ->
+  case Msg of
+    #{<<"type">> := <<"join">>} ->
+      Player:call(#c2s_join{table_id = maps:get(<<"tableId">>, Msg, -1)});
+    #{<<"type">> := <<"leave">>} ->
+      Player:call(#c2s_leave{});
+    #{<<"type">> := <<"list">>} ->
+      Player:call(#c2s_list{})
+  end.

@@ -81,7 +81,7 @@ river(_Event, StateData) ->
 	{next_state, river, StateData}.
 
 river(next, _From, StateData = #state{table = Table}) ->
-  ok = Table:game_finished(),
+  ok = Table:cast(#g2t_finished{}),
 	{reply, ok, finished, StateData};
 river(Event, From, StateData) ->
   handle_sync_event(Event, From, river, StateData).
@@ -119,7 +119,7 @@ dump(#game{pid = Pid}) ->
 test() ->
   test_deck().
 test_deck() ->
-  T = table:new(),
+  T = table:new(0),
   P1 = player:new(),
   P2 = player:new(),
   G = game:new({[P1, P2], T}),

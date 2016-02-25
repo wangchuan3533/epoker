@@ -28,7 +28,7 @@ new() ->
 
 stop(#deck{pid = Pid}) ->
   gen_fsm:stop(Pid).
-  
+
 call(Msg, #deck{pid = Pid}) ->
   gen_fsm:sync_send_event(Pid, Msg).
 

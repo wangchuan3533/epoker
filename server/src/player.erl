@@ -40,14 +40,11 @@ init([]) ->
 in_lobby(_Event, StateData) ->
 	{next_state, in_lobby, StateData}.
 
-in_lobby(#{<<"type">> := <<"join">>, <<"tableId">> := TableId}, _From, StateData) when TableId >= 0 ->
-  {ok, Table} = lobby:call({get_table, TableId}),
+in_lobby(#c2s_join{table_id = Tid}, _From, StateData) ->
+  {ok, {TableId, Table}} = lobby:call(#p2l_get_table{table_id = Tid}),
   ok = Table:call(#p2t_join{player = #player{pid = self()}}),
   NewStateData = StateData#state{table = Table},
 	{reply, TableId, in_table, NewStateData};
-in_lobby(JsonMap = #{<<"type">> := <<"join">>}, From, StateData) ->
-  TableId = lobby:call(get_available_table),
-  in_lobby(maps:put(<<"tableId">>, TableId, JsonMap), From, StateData);
 
 in_lobby(Event, From, StateData) ->
   handle_sync_event(Event, From, in_lobby, StateData).
@@ -55,7 +52,7 @@ in_lobby(Event, From, StateData) ->
 in_table(_Event, StateData) ->
 	{next_state, in_table, StateData}.
 
-in_table(#{<<"type">> := <<"leave">>}, _From, StateData = #state{table = Table}) ->
+in_table(#c2s_leave{}, _From, StateData = #state{table = Table}) ->
   ok = Table:call(#p2t_leave{player = #player{pid = self()}}),
   NewStateData = StateData#state{table = undefined},
 	{reply, ok, in_lobby, NewStateData};
@@ -77,17 +74,26 @@ handle_event(_Event, StateName, StateData) ->
 handle_sync_event(dump, _From, StateName, StateData) ->
 	{reply, {StateName, StateData}, StateName, StateData};
 
-handle_sync_event(#{<<"type">> := <<"list_tables">>}, _From, StateName, StateData) ->
-  TableIds = lists:map(fun({K, _V}) -> K end, lobby:call(list_tables)),
+handle_sync_event(#c2s_list{}, _From, StateName, StateData) ->
+  TableIds = lists:map(fun({K, _V}) -> K end, lobby:call(#p2l_list_tables{})),
 	{reply, TableIds, StateName, StateData};
-  
+
 handle_sync_event(_Event, _From, StateName, StateData) ->
 	{reply, ignored, StateName, StateData}.
 
 handle_info(_Info, StateName, StateData) ->
 	{next_state, StateName, StateData}.
 
-terminate(_Reason, _StateName, _StateData) ->
+terminate(_Reason, StateName, #state{table = Table, game = Game}) ->
+  case StateName of
+    in_game ->
+      ok = Game:call(#p2g_fold{player = #player{pid = self()}}),
+      ok = Table:call(#p2t_leave{player = #player{pid = self()}});
+    in_table ->
+      ok = Table:call(#p2t_leave{player = #player{pid = self()}});
+    in_lobby ->
+      ok
+  end,
   io:format("player ~w stoped.~n", [self()]),
 	ok.
 
@@ -105,9 +111,8 @@ test() ->
 test_join() ->
   P = player:new(),
   {in_lobby, #state{table = undefined}} = P:dump(),
-  T = table:new(),
-  P:join(T),
-  {in_table, #state{table = G}} = P:dump(),
-  ok = P:leave(),
-  G:stop(),
+  P:call(#c2s_join{table_id = -1}),
+  {in_table, #state{table = T}} = P:dump(),
+  ok = P:call(#c2s_leave{}),
+  T:stop(),
   P:stop().
