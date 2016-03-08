@@ -42,6 +42,9 @@ stop() ->
 stop(#lobby{pid = Pid}) ->
   gen_server:stop(Pid).
 
+this() ->
+  #lobby{pid = self()}.
+
 %% gen_server behaviour
 init([]) ->
 	{ok, #state{full_tables = ets:new(full_tables, [set]), not_full_tables = ets:new(not_full_tables, [set]), max_table_id = 0}}.
@@ -52,7 +55,7 @@ handle_call(#p2l_list_tables{}, _From, State = #state{full_tables = FullTables, 
 handle_call(#p2l_get_table{table_id = -1}, _From, State = #state{not_full_tables = NotFullTables, max_table_id = MaxTableId}) ->
   case ets:first(NotFullTables) of
     '$end_of_table' ->
-      Entry = {MaxTableId, table:new(MaxTableId)},
+      Entry = {MaxTableId, table:new({MaxTableId, this()})},
       true = ets:insert(NotFullTables, Entry),
 	    {reply, {ok, Entry}, State#state{max_table_id = MaxTableId + 1}};
     TableId ->
@@ -96,8 +99,19 @@ handle_cast(_Msg, State) ->
 handle_info(_Info, State) ->
 	{noreply, State}.
 
-terminate(_Reason, _State) ->
-  io:format("lobby ~w stoped.~n", [self()]),
+terminate(_Reason, #state{full_tables = FullTables, not_full_tables = NotFullTables}) ->
+  %% stop all tables
+  ok = ets:foldl(fun({TableId, Table}, ok) ->
+    ok = io:format("TableId ~w stoped~n", [TableId]),
+    Table:stop()
+  end, ok, FullTables),
+  true = ets:delete_all_objects(FullTables),
+  ok = ets:foldl(fun({TableId, Table}, ok) ->
+    ok = io:format("TableId ~w stoped~n", [TableId]),
+    Table:stop()
+  end, ok, NotFullTables),
+  true = ets:delete_all_objects(NotFullTables),
+  io:format("lobby ~w stoped.~n", [this()]),
 	ok.
 
 code_change(_OldVsn, State, _Extra) ->

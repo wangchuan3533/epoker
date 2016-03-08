@@ -7,33 +7,32 @@
 -define(MAX_PLAYERS, 10).
 -define(MIN_PLAYERS, 2).
 
+-define(ACTION_RAISE, 1).
+-define(ACTION_FOLD, 2).
+
 
 %% client to server protocols
--record(c2s_join, {table_id}).
--record(c2s_leave, {}).
--record(c2s_list, {}).
-
+-record(c2s_join_table, {table_id}).
+-record(c2s_leave_table, {}).
+-record(c2s_leave_game, {}).
+-record(c2s_list_table, {}).
+-record(c2s_action, {action, amount = 0}).
 
 %% protocols
 
 %% player to table protocols
 -record(p2t_join, {player}).
 -record(p2t_leave, {player}).
--record(p2t_start, {}).
 
 %% player to game protocols
--record(p2g_bet, {player, bet}).
--record(p2g_raise, {player, raise}).
--record(p2g_call, {player}).
--record(p2g_check, {player}).
--record(p2g_fold, {player}).
--record(p2g_all_in, {player}).
+-record(p2g_action, {player, action, amount = 0}).
 
 %% player to lobby protocols
 -record(p2l_get_table, {table_id}).
 -record(p2l_list_tables, {}).
 
 %% table to player protocols
+
 -record(t2p_join, {player}).
 -record(t2p_leave, {player}).
 -record(t2p_chat, {player, text}).
@@ -46,6 +45,8 @@
 -record(t2l_table_stopped, {table_id}).
 
 %% game to player protocols
+-record(g2p_started, {game}).
+-record(g2p_finished, {game}).
 -record(g2p_action, {player, action, amount}).
 -record(g2p_reward, {reward}).
 -record(g2p_state_update, {state}).

@@ -20,14 +20,15 @@
 
 -record(state, {
   id,
+  lobby,
   waiting_players = [],
   playing_players = [],
   game = undefined
 }).
 
 %% API.
-new(Id) ->
-  {ok, Pid} = gen_fsm:start_link(?MODULE, [Id], []),
+new(Opts) ->
+  {ok, Pid} = gen_fsm:start_link(?MODULE, [Opts], []),
   #table{pid = Pid}.
 
 stop(#table{pid = Pid}) ->
@@ -39,19 +40,20 @@ call(Msg, #table{pid = Pid}) ->
 cast(Msg, #table{pid = Pid}) ->
   gen_fsm:send_event(Pid, Msg).
 
+this() ->
+  #table{pid = self()}.
 
 %% gen_fsm.
 
-init([Id]) when is_integer(Id) ->
-	{ok, waiting, #state{id = Id}}.
+init([{Id, Lobby}]) ->
+	{ok, waiting, #state{id = Id, lobby = Lobby}}.
 
 waiting(_Event, StateData) ->
 	{next_state, waiting, StateData}.
 
-waiting(#p2t_start{}, _From, StateData = #state{waiting_players = WaitingPlayers}) ->
+waiting(start, _From, StateData = #state{waiting_players = WaitingPlayers}) ->
   if length(WaitingPlayers) >= ?MIN_PLAYERS ->
-    Game = game:new({WaitingPlayers, #table{pid = self()}}),
-    lists:foreach(fun(Player) -> Player:call({game_started, Game}) end, WaitingPlayers),
+    Game = game:new({WaitingPlayers, this(), 1}),
     {reply, ok, playing, StateData#state{waiting_players = [], playing_players = WaitingPlayers, game = Game}};
   true ->
     {reply, ok, waiting, StateData}
@@ -72,22 +74,22 @@ handle_event(_Event, StateName, StateData) ->
 	{next_state, StateName, StateData}.
 
 %% add player
-handle_sync_event(#p2t_join{player = Player}, _From, StateName, StateData = #state{id = Id, playing_players = PlayingPlayers, waiting_players = WaitingPlayers}) ->
+handle_sync_event(#p2t_join{player = Player}, _From, StateName, StateData = #state{id = Id, lobby = Lobby, playing_players = PlayingPlayers, waiting_players = WaitingPlayers}) ->
   if
     length(PlayingPlayers) + length(WaitingPlayers) >= ?MAX_PLAYERS ->
       {reply, full, StateName, StateData};
     length(PlayingPlayers) + length(WaitingPlayers) == ?MAX_PLAYERS - 1->
-      ok = lobby:call(#t2l_table_full{table_id = Id}),
+      ok = Lobby:call(#t2l_table_full{table_id = Id}),
       {reply, ok, StateName, StateData#state{waiting_players = [Player | WaitingPlayers]}};
     true ->
       {reply, ok, StateName, StateData#state{waiting_players = [Player | WaitingPlayers]}}
   end;
 
 %% del player
-handle_sync_event(#p2t_leave{player = Player}, _From, StateName, StateData = #state{id = Id, playing_players = PlayingPlayers, waiting_players = WaitingPlayers}) ->
+handle_sync_event(#p2t_leave{player = Player}, _From, StateName, StateData = #state{id = Id, lobby = Lobby, playing_players = PlayingPlayers, waiting_players = WaitingPlayers}) ->
   ok = if
     length(PlayingPlayers) + length(WaitingPlayers) == ?MAX_PLAYERS ->
-      lobby:call(#t2l_table_not_full{table_id = Id});
+      Lobby:call(#t2l_table_not_full{table_id = Id});
     true ->
       ok
   end,
@@ -103,9 +105,9 @@ handle_sync_event(_Event, _From, StateName, StateData) ->
 handle_info(_Info, StateName, StateData) ->
 	{next_state, StateName, StateData}.
 
-terminate(_Reason, _StateName, #state{id = Id}) ->
-  ok = lobby:cast(#t2l_table_stopped{table_id = Id}),
-  ok = io:format("table ~w stoped.~n", [self()]),
+terminate(_Reason, _StateName, #state{id = Id, lobby = Lobby}) ->
+  ok = Lobby:cast(#t2l_table_stopped{table_id = Id}),
+  ok = io:format("table ~w stoped.~n", [this()]),
 	ok.
 
 code_change(_OldVsn, StateName, StateData, _Extra) ->
@@ -122,9 +124,10 @@ test() ->
 
 %% test
 test_join_leave() ->
-  Table = table:new(0),
-  A = player:new(),
-  B = player:new(),
+  Lobby = lobby:new(),
+  Table = table:new({0, Lobby}),
+  A = player:new(Lobby),
+  B = player:new(Lobby),
   {waiting, #state{waiting_players = [], playing_players = [], game = undefined}} = Table:dump(),
   ok = Table:call(#p2t_join{player = A}),
   {waiting, #state{waiting_players = [A], playing_players = [], game = undefined}} = Table:dump(),
@@ -136,16 +139,18 @@ test_join_leave() ->
   {waiting, #state{waiting_players = [], playing_players = [], game = undefined}} = Table:dump(),
   ok = B:stop(),
   ok = A:stop(),
-  Table:stop().
+  Table:stop(),
+  Lobby:stop().
 
 test_game_start() ->
-  Table = table:new(0),
-  A = player:new(),
-  B = player:new(),
-  C = player:new(),
+  Lobby = lobby:new(),
+  Table = table:new({0, Lobby}),
+  A = player:new(Lobby),
+  B = player:new(Lobby),
+  C = player:new(Lobby),
   ok = Table:call(#p2t_join{player = A}),
   ok = Table:call(#p2t_join{player = B}),
-  ok = Table:call(#p2t_start{}),
+  ok = Table:call(start),
   {playing, #state{waiting_players = [], playing_players = [B, A], game = Game = #game{}}} = Table:dump(),
   ok = Table:call(#p2t_join{player = C}),
   {preflop, _StateData} = Game:dump(),
@@ -165,4 +170,5 @@ test_game_start() ->
   ok = C:stop(),
   ok = B:stop(),
   ok = A:stop(),
-  Table:stop().
+  Table:stop(),
+  Lobby:stop().

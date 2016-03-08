@@ -3,7 +3,7 @@
 -include("holdem.hrl").
 
 %% API.
--export([new/0, stop/1, call/2]).
+-export([new/0, stop/1, call/2, cast/2, test/0]).
 
 %% gen_fsm.
 -export([init/1]).
@@ -31,6 +31,10 @@ stop(#deck{pid = Pid}) ->
 
 call(Msg, #deck{pid = Pid}) ->
   gen_fsm:sync_send_event(Pid, Msg).
+cast(Msg, #deck{pid = Pid}) ->
+  gen_fsm:send_event(Pid, Msg).
+this() ->
+  #deck{pid = self()}.
 
 %% gen_fsm.
 init([]) ->
@@ -67,7 +71,11 @@ handle_info(_Info, StateName, StateData) ->
 	{next_state, StateName, StateData}.
 
 terminate(_Reason, _StateName, _StateData) ->
+  io:format("deck ~w stoped.~n", [this()]),
 	ok.
 
 code_change(_OldVsn, StateName, StateData, _Extra) ->
 	{ok, StateName, StateData}.
+
+%% test
+test() -> ok.

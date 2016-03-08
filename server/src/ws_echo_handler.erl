@@ -17,12 +17,15 @@ init(_, _, _) ->
 
 websocket_init(_, Req, _Opts) ->
 	Req2 = cowboy_req:compact(Req),
-	{ok, Req2, #state{player = player:new()}}.
+	{ok, Req2, #state{player = player:new(lobby)}}.
 
 websocket_handle({text, Text}, Req, State = #state{player = Player}) ->
   ok = io:format("received text message ~s~n", [Text]),
-  Msg = jiffy:decode(Text, [return_maps]),
-  Resp = iolist_to_binary(jiffy:encode(handle_message(Player, Msg))),
+  Resp = try jiffy:decode(Text, [return_maps]) of
+    Msg -> iolist_to_binary(jiffy:encode(handle_message(Player, Msg)))
+  catch
+    throw:{error,_} -> "not json"
+  end,
 	{reply, {text, Resp}, Req, State};
 websocket_handle({binary, Data}, Req, State) ->
 	{reply, {binary, Data}, Req, State};
@@ -42,9 +45,15 @@ websocket_terminate(_Reason, _Req, #state{player = Player}) ->
 handle_message(Player, Msg) ->
   case Msg of
     #{<<"type">> := <<"join">>} ->
-      Player:call(#c2s_join{table_id = maps:get(<<"tableId">>, Msg, -1)});
+      Player:call(#c2s_join_table{table_id = maps:get(<<"tableId">>, Msg, -1)});
+    #{<<"type">> := <<"quit">>} ->
+      Player:call(#c2s_leave_game{});
     #{<<"type">> := <<"leave">>} ->
-      Player:call(#c2s_leave{});
+      Player:call(#c2s_leave_table{});
     #{<<"type">> := <<"list">>} ->
-      Player:call(#c2s_list{})
+      Player:call(#c2s_list_table{});
+    #{<<"type">> := <<"action">>} ->
+      Player:call(#c2s_action{action = maps:get(<<"action">>, Msg, 1), amount = maps:get(<<"amount">>, Msg, 0)});
+    _Other ->
+      <<"not recognized protocol">>
   end.
