@@ -19,8 +19,7 @@
 -record(state, {
   lobby = undefined,
   table = undefined,
-  game = undefined,
-  chips = 10000
+  game = undefined
 }).
 
 %% API.
@@ -54,9 +53,6 @@ in_lobby(#c2s_join_table{table_id = Tid}, _From, StateData = #state{lobby = Lobb
 in_lobby(Event, From, StateData) ->
   handle_sync_event(Event, From, in_lobby, StateData).
 
-in_table(#g2p_started{game = Game}, StateData) ->
-  NewStateData = StateData#state{game = Game},
-	{next_state, in_game, NewStateData};
 in_table(_Event, StateData) ->
 	{next_state, in_table, StateData}.
 
@@ -64,12 +60,12 @@ in_table(#c2s_leave_table{}, _From, StateData = #state{table = Table}) ->
   ok = Table:call(#p2t_leave{player = this()}),
   NewStateData = StateData#state{table = undefined},
 	{reply, ok, in_lobby, NewStateData};
+in_table(#g2p_started{game = Game}, _From, StateData) ->
+  NewStateData = StateData#state{game = Game},
+	{reply, ok, in_game, NewStateData};
 in_table(Event, From, StateData) ->
   handle_sync_event(Event, From, in_table, StateData).
 
-in_game(#g2p_finished{game = Game}, StateData = #state{game = Game}) ->
-  NewStateData = StateData#state{game = undefined},
-	{next_state, in_table, NewStateData};
 in_game(_Event, StateData) ->
 	{next_state, in_game, StateData}.
 
@@ -78,6 +74,9 @@ in_game(#c2s_action{action = Action, amount = Amount}, _From, StateData = #state
 	{reply, Ret, in_game, StateData};
 in_game(#c2s_leave_game{}, _From, StateData = #state{game = Game}) ->
   Game:call(#p2g_action{player = this(), action = ?ACTION_FOLD}),
+  NewStateData = StateData#state{game = undefined},
+	{reply, ok, in_table, NewStateData};
+in_game(#g2p_finished{game = Game}, _From, StateData = #state{game = Game}) ->
   NewStateData = StateData#state{game = undefined},
 	{reply, ok, in_table, NewStateData};
 in_game(Event, From, StateData) ->

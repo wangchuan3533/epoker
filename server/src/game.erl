@@ -19,22 +19,20 @@
 -export([code_change/4]).
 
 -record(state, {
-  seats = undefined,
+  not_talked_seats = undefined,
+  talked_seats = [],
   table = undefined,
   deck = undefined,
   pots = [],
-  small_blind = 100,
-  big_blind = 200,
-  dealer = 0,
-  turn = 0,
   bet = 0
 }).
 
 -record(seat, {
+  player = undefined,
   cards = [],
   bet = 0,
-  talked = false,
-  folded = false
+  folded = false,
+  chips = 10000
 }).
 
 %% API.
@@ -52,12 +50,40 @@ cast(Msg, #game{pid = Pid}) ->
 this() ->
   #game{pid = self()}.
 
-init([{Players, Table, Dealer}]) ->
+
+%% functions
+next(preflop) -> flop;
+next(flop) -> turn;
+next(turn) -> river;
+next(river) -> finished.
+
+%%
+init([{Players, Table}]) ->
   ok = lists:foreach(fun(Player) ->
-    ok = Player:cast(#g2p_started{game = this()})
+    ok = Player:call(#g2p_started{game = this()})
   end, Players),
-  Seats = dict:from_list(lists:map(fun(Player) -> {Player, #seat{}} end, Players)),
-	{ok, preflop, #state{seats = Seats, table = Table, dealer = Dealer, deck = deck:new()}}.
+  
+  Seats = lists:map(fun(Player) -> #seat{player = Player} end, Players),
+  [H | T] = Seats,
+  Seats1 = lists:append(T, [H]),
+  
+  %% small blind
+  [SmallBlindSeat | T1] = Seats1,
+  Chips1 = SmallBlindSeat#seat.chips - ?SMALL_BLIND,
+  NewSmallBlindSeat = SmallBlindSeat#seat{chips = Chips1, bet = ?SMALL_BLIND},
+  Seats2 = lists:append(T1, [NewSmallBlindSeat]),
+  
+  %% big blind
+  [BigBlindSeat | T2] = Seats2,
+  Chips2 = BigBlindSeat#seat.chips - ?BIG_BLIND,
+  NewBigBlindSeat = BigBlindSeat#seat{chips = Chips2, bet = ?BIG_BLIND},
+  Seats3 = lists:append(T2, [NewBigBlindSeat]),
+  
+  %% preflop cards
+  Deck = deck:new(),
+  ok = io:format("seats3 ~w~n", [Seats3]),
+  Seats4 = lists:map(fun(Seat) -> Seat#seat{cards = [Deck:call(get), Deck:call(get)]} end, Seats3),
+	{ok, preflop, #state{not_talked_seats = Seats4, table = Table, deck = Deck}}.
 
 preflop(_Event, StateData) ->
 	{next_state, preflop, StateData}.
@@ -101,9 +127,21 @@ finished(Event, From, StateData) ->
 handle_event(_Event, StateName, StateData) ->
 	{next_state, StateName, StateData}.
 
-handle_sync_event(#p2g_action{player = Player, action = Action, amount = Amount}, _From, _StateName, StateData = #state{}) ->
-  io:format("player ~w action ~w amount ~w~n", [Player, Action, Amount]),
-	{reply, ok, finished, StateData};
+handle_sync_event(#p2g_action{player = Player, action = Action, amount = Amount}, _From, StateName, StateData = #state{not_talked_seats = NotTalkedSeats, talked_seats = TalkedSeats}) ->
+  ok = io:format("player ~w action ~w amount ~w~n", [Player, Action, Amount]),
+  [NextTalkSeat = #seat{player = NextTalkPlayer} | OtherNotTalkedSeats] = NotTalkedSeats,
+  case Player of
+    NextTalkPlayer ->
+      NewTalkedSeats = [NextTalkSeat | TalkedSeats],
+      case OtherNotTalkedSeats of
+        [] ->
+	        {reply, ok, next(StateName), StateData#state{not_talked_seats = lists:reverse(NewTalkedSeats), talked_seats = []}};
+        _NotEmptyList ->
+	        {reply, ok, StateName, StateData#state{not_talked_seats = OtherNotTalkedSeats, talked_seats = NewTalkedSeats}}
+      end;
+    _Other ->
+	    {reply, ignored, StateName, StateData}
+  end;
 
 %% dump
 handle_sync_event(dump, _From, StateName, StateData) ->
@@ -115,15 +153,14 @@ handle_sync_event(_Event, _From, StateName, StateData) ->
 handle_info(_Info, StateName, StateData) ->
 	{next_state, StateName, StateData}.
 
-terminate(_Reason, _StateName, #state{deck = Deck, table = Table, seats = Seats}) ->
+terminate(_Reason, _StateName, #state{deck = Deck, table = Table, not_talked_seats = Seats1, talked_seats = Seats2}) ->
   ok = Deck:stop(),
-  ok = dict:fold(fun(Player, Seat, ok) ->
-    ok = io:format("player ~w seat cleanup ~w~n", [Player, Seat]),
-    Player:cast(#g2p_finished{game = this()})
-  end, ok, Seats),
-  ok = Table:cast(#g2t_finished{}),
-  io:format("game ~w stoped.~n", [this()]),
-	ok.
+  ok = lists:foreach(fun(#seat{player = Player}) ->
+    Player:call(#g2p_finished{game = this()})
+  end, lists:append(Seats1, Seats2)),
+  ok = Table:call(#g2t_finished{game = this()}),
+  ok = io:format("game ~w stoped.~n", [this()]),
+  ok.
 
 code_change(_OldVsn, StateName, StateData, _Extra) ->
 	{ok, StateName, StateData}.
@@ -136,10 +173,13 @@ test() ->
   test_deck().
 test_deck() ->
   L = lobby:new(),
-  T = table:new({0, L}),
   P1 = player:new(L),
   P2 = player:new(L),
-  G = game:new({[P1, P2], T, 1}),
+  TableId = P1:call(#c2s_join_table{}),
+  TableId = P2:call(#c2s_join_table{}),
+  {ok, {TableId, T}} = L:call(#p2l_get_table{table_id = TableId}),
+  ok = T:call(start),
+  {playing, {state, _, _, _, _, G}} = T:dump(),
   ok = io:format("~w~n", [G:dump()]),
   ok = G:stop(),
   ok = P1:stop(),

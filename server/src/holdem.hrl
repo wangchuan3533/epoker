@@ -10,9 +10,11 @@
 -define(ACTION_RAISE, 1).
 -define(ACTION_FOLD, 2).
 
+-define(SMALL_BLIND, 100).
+-define(BIG_BLIND, 200).
 
 %% client to server protocols
--record(c2s_join_table, {table_id}).
+-record(c2s_join_table, {table_id = -1}).
 -record(c2s_leave_table, {}).
 -record(c2s_leave_game, {}).
 -record(c2s_list_table, {}).
@@ -28,7 +30,7 @@
 -record(p2g_action, {player, action, amount = 0}).
 
 %% player to lobby protocols
--record(p2l_get_table, {table_id}).
+-record(p2l_get_table, {table_id = -1}).
 -record(p2l_list_tables, {}).
 
 %% table to player protocols
@@ -52,4 +54,4 @@
 -record(g2p_state_update, {state}).
 
 %% game to talbe protocols
--record(g2t_finished, {}).
+-record(g2t_finished, {game}).

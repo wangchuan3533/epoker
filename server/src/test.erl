@@ -4,12 +4,19 @@
 
 test() ->
   ok = deck:test(),
+  ok = io:format("deck test passed~n"),
   ok = game:test(),
+  ok = io:format("game test passed~n"),
   ok = hand:test(),
+  ok = io:format("hand test passed~n"),
   ok = lobby:test(),
+  ok = io:format("lobby test passed~n"),
   ok = player:test(),
+  ok = io:format("player test passed~n"),
   ok = table:test(),
-  ok = test1().
+  ok = io:format("table test passed~n"),
+  ok = test1(),
+  ok = io:format("test1 test passed~n").
 
 test1() ->
   Lobby = lobby:new(),

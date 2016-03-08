@@ -53,7 +53,7 @@ waiting(_Event, StateData) ->
 
 waiting(start, _From, StateData = #state{waiting_players = WaitingPlayers}) ->
   if length(WaitingPlayers) >= ?MIN_PLAYERS ->
-    Game = game:new({WaitingPlayers, this(), 1}),
+    Game = game:new({WaitingPlayers, this()}),
     {reply, ok, playing, StateData#state{waiting_players = [], playing_players = WaitingPlayers, game = Game}};
   true ->
     {reply, ok, waiting, StateData}
@@ -61,12 +61,11 @@ waiting(start, _From, StateData = #state{waiting_players = WaitingPlayers}) ->
 waiting(Event, From, StateData) ->
   handle_sync_event(Event, From, waiting, StateData).
 
-playing(#g2t_finished{}, StateData = #state{waiting_players = WaitingPlayers, playing_players = PlayingPlayers, game = Game}) ->
-  ok = Game:stop(),
-	{next_state, waiting, StateData#state{waiting_players = WaitingPlayers ++ PlayingPlayers, playing_players = [], game = undefined}};
 playing(_Event, StateData) ->
 	{next_state, playing, StateData}.
 
+playing(#g2t_finished{game = Game}, _From, StateData = #state{waiting_players = WaitingPlayers, playing_players = PlayingPlayers, game = Game}) ->
+	{reply, ok, waiting, StateData#state{waiting_players = WaitingPlayers ++ PlayingPlayers, playing_players = [], game = undefined}};
 playing(Event, From, StateData) ->
   handle_sync_event(Event, From, playing, StateData).
 
@@ -144,15 +143,15 @@ test_join_leave() ->
 
 test_game_start() ->
   Lobby = lobby:new(),
-  Table = table:new({0, Lobby}),
+  {ok, {TableId, Table}} = Lobby:call(#p2l_get_table{}),
   A = player:new(Lobby),
   B = player:new(Lobby),
   C = player:new(Lobby),
-  ok = Table:call(#p2t_join{player = A}),
-  ok = Table:call(#p2t_join{player = B}),
+  TableId = A:call(#c2s_join_table{table_id = TableId}),
+  TableId = B:call(#c2s_join_table{table_id = TableId}),
   ok = Table:call(start),
   {playing, #state{waiting_players = [], playing_players = [B, A], game = Game = #game{}}} = Table:dump(),
-  ok = Table:call(#p2t_join{player = C}),
+  TableId = C:call(#c2s_join_table{table_id = 0}),
   {preflop, _StateData} = Game:dump(),
   {playing, #state{waiting_players = [C], playing_players = [B, A]}} = Table:dump(),
   ok = Game:call(next),
@@ -166,6 +165,7 @@ test_game_start() ->
   {playing, #state{waiting_players = [C], playing_players = [B, A]}} = Table:dump(),
   ok = Game:call(next),
   {finished, _StateData} = Game:dump(),
+  ok = Game:stop(),
   {waiting, #state{waiting_players = [C, B, A], playing_players = []}} = Table:dump(),
   ok = C:stop(),
   ok = B:stop(),
