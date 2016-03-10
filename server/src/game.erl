@@ -19,8 +19,10 @@
 -export([code_change/4]).
 
 -record(state, {
-  not_talked_seats = undefined,
-  talked_seats = [],
+  not_talked = [],
+  talked = [],
+  all_ined = [],
+  folded = [],
   table = undefined,
   deck = undefined,
   pots = [],
@@ -32,7 +34,7 @@
   cards = [],
   bet = 0,
   folded = false,
-  chips = 10000
+  chips = ?INIT_CHIPS
 }).
 
 %% API.
@@ -83,65 +85,83 @@ init([{Players, Table}]) ->
   Deck = deck:new(),
   ok = io:format("seats3 ~w~n", [Seats3]),
   Seats4 = lists:map(fun(Seat) -> Seat#seat{cards = [Deck:call(get), Deck:call(get)]} end, Seats3),
-	{ok, preflop, #state{not_talked_seats = Seats4, table = Table, deck = Deck}}.
+	{ok, preflop, #state{not_talked = Seats4, table = Table, deck = Deck}}.
 
 preflop(_Event, StateData) ->
 	{next_state, preflop, StateData}.
-
-preflop(next, _From, StateData) ->
-	{reply, ok, flop, StateData};
+preflop(Action = #p2g_action{}, _From, StateData) ->
+  handle_action(Action, preflop, StateData);
 preflop(Event, From, StateData) ->
   handle_sync_event(Event, From, preflop, StateData).
 
 flop(_Event, StateData) ->
 	{next_state, flop, StateData}.
-
-flop(next, _From, StateData) ->
-	{reply, ok, turn, StateData};
+flop(Action = #p2g_action{}, _From, StateData) ->
+  handle_action(Action, flop, StateData);
 flop(Event, From, StateData) ->
   handle_sync_event(Event, From, flop, StateData).
 
 turn(_Event, StateData) ->
 	{next_state, turn, StateData}.
-
-turn(next, _From, StateData) ->
-	{reply, ok, river, StateData};
+turn(Action = #p2g_action{}, _From, StateData) ->
+  handle_action(Action, turn, StateData);
 turn(Event, From, StateData) ->
   handle_sync_event(Event, From, turn, StateData).
 
 river(_Event, StateData) ->
 	{next_state, river, StateData}.
-
-river(next, _From, StateData = #state{table = Table}) ->
-  ok = Table:cast(#g2t_finished{}),
-	{reply, ok, finished, StateData};
+river(Action = #p2g_action{}, _From, StateData) ->
+  handle_action(Action, river, StateData);
 river(Event, From, StateData) ->
   handle_sync_event(Event, From, river, StateData).
 
 finished(_Event, StateData) ->
 	{next_state, finished, StateData}.
-
 finished(Event, From, StateData) ->
   handle_sync_event(Event, From, finished, StateData).
 
-handle_event(_Event, StateName, StateData) ->
-	{next_state, StateName, StateData}.
-
-handle_sync_event(#p2g_action{player = Player, action = Action, amount = Amount}, _From, StateName, StateData = #state{not_talked_seats = NotTalkedSeats, talked_seats = TalkedSeats}) ->
+handle_action(#p2g_action{player = Player, action = ?ACTION_FOLD}, StateName, StateData = #state{not_talked = NotTalked, talked = Talked, folded = Folded, all_ined = AllIned}) ->
+  ok = io:formt("player ~w foled, not_talked: ~w, talked: ~w, folded: ~w, all_ined: ~w~n", [Player, NotTalked, Talked, Folded, AllIned]),
+  case lists:keyfind(Player, #seat.player, Folded) of
+    #seat{} -> {reply, already_folded, StateName, StateData};
+    false -> case lists:keyfind(Player, #seat.player, AllIned) of
+      #seat{} -> {reply, already_all_in, StateName, StateData};
+      false -> case lists:keyfind(Player, #seat.player, Talked) of
+        Seat = #seat{} ->
+          NewTalked = lists:delete(Seat, Talked),
+          NewFolded = [Seat | Folded],
+          {reply, ok, StateName, StateData#state{talked = NewTalked, folded = NewFolded}};
+        false -> case lists:keyfind(Player, #seat.player, NotTalked) of
+          Seat = #seat{} ->
+            NewNotTalked = lists:delete(Seat, NotTalked),
+            NewFolded = [Seat | Folded],
+            {reply, ok, StateName, StateData#state{not_talked = NewNotTalked, folded = NewFolded}};
+          false ->
+            {reply, ok, not_in_game, StateData}
+        end
+      end
+    end
+  end;
+  
+handle_action(#p2g_action{player = Player, action = Action, amount = Amount}, StateName, StateData = #state{not_talked = NotTalked, talked = Talked}) ->
   ok = io:format("player ~w action ~w amount ~w~n", [Player, Action, Amount]),
-  [NextTalkSeat = #seat{player = NextTalkPlayer} | OtherNotTalkedSeats] = NotTalkedSeats,
+  [NextTalk = #seat{player = NextTalkPlayer} | OtherNotTalked] = NotTalked,
   case Player of
     NextTalkPlayer ->
-      NewTalkedSeats = [NextTalkSeat | TalkedSeats],
-      case OtherNotTalkedSeats of
+      NewTalkedSeats = [NextTalk | Talked],
+      case OtherNotTalked of
         [] ->
-	        {reply, ok, next(StateName), StateData#state{not_talked_seats = lists:reverse(NewTalkedSeats), talked_seats = []}};
+	        {reply, ok, next(StateName), StateData#state{not_talked = lists:reverse(NewTalkedSeats), talked = []}};
         _NotEmptyList ->
-	        {reply, ok, StateName, StateData#state{not_talked_seats = OtherNotTalkedSeats, talked_seats = NewTalkedSeats}}
+	        {reply, ok, StateName, StateData#state{not_talked = OtherNotTalked, talked = NewTalkedSeats}}
       end;
     _Other ->
 	    {reply, ignored, StateName, StateData}
-  end;
+  end.
+  
+
+handle_event(_Event, StateName, StateData) ->
+	{next_state, StateName, StateData}.
 
 %% dump
 handle_sync_event(dump, _From, StateName, StateData) ->
@@ -153,7 +173,7 @@ handle_sync_event(_Event, _From, StateName, StateData) ->
 handle_info(_Info, StateName, StateData) ->
 	{next_state, StateName, StateData}.
 
-terminate(_Reason, _StateName, #state{deck = Deck, table = Table, not_talked_seats = Seats1, talked_seats = Seats2}) ->
+terminate(_Reason, _StateName, #state{deck = Deck, table = Table, not_talked = Seats1, talked = Seats2}) ->
   ok = Deck:stop(),
   ok = lists:foreach(fun(#seat{player = Player}) ->
     Player:call(#g2p_finished{game = this()})
@@ -170,8 +190,8 @@ dump(#game{pid = Pid}) ->
   gen_fsm:sync_send_all_state_event(Pid, dump).
 
 test() ->
-  test_deck().
-test_deck() ->
+  ok = test_game().
+test_game() ->
   L = lobby:new(),
   P1 = player:new(L),
   P2 = player:new(L),
@@ -180,10 +200,38 @@ test_deck() ->
   {ok, {TableId, T}} = L:call(#p2l_get_table{table_id = TableId}),
   ok = T:call(start),
   {playing, {state, _, _, _, _, G}} = T:dump(),
-  ok = io:format("~w~n", [G:dump()]),
+  {preflop, #state{not_talked = [#seat{player = P1, cards = Cards1, chips = Chips1}, #seat{player = P2, cards = Cards2, chips = Chips2}], talked = []}} = G:dump(),
+  ok = io:format("Cards1= ~w, Cards2= ~w~n", [Cards1, Cards2]),
+  Chips1 = ?INIT_CHIPS - ?SMALL_BLIND,
+  Chips2 = ?INIT_CHIPS - ?BIG_BLIND,
+  
+  ok = G:call(#p2g_action{player = P1, action = ?ACTION_RAISE, amount = 0}),
+  {preflop, #state{not_talked = [#seat{player = P2, cards = Cards2, chips = Chips2}], talked = [#seat{player = P1, cards = Cards1, chips = Chips1}]}} = G:dump(),
+  ok = G:call(#p2g_action{player = P2, action = ?ACTION_RAISE, amount = 0}),
+  {flop, #state{not_talked = [#seat{player = P1, cards = Cards1, chips = Chips1}, #seat{player = P2, cards = Cards2, chips = Chips2}], talked = []}} = G:dump(),
+  
+  ok = G:call(#p2g_action{player = P1, action = ?ACTION_RAISE, amount = 0}),
+  {flop, #state{not_talked = [#seat{player = P2, cards = Cards2, chips = Chips2}], talked = [#seat{player = P1, cards = Cards1, chips = Chips1}]}} = G:dump(),
+  ok = G:call(#p2g_action{player = P2, action = ?ACTION_RAISE, amount = 0}),
+  {turn, #state{not_talked = [#seat{player = P1, cards = Cards1, chips = Chips1}, #seat{player = P2, cards = Cards2, chips = Chips2}], talked = []}} = G:dump(),
+  
+  ok = G:call(#p2g_action{player = P1, action = ?ACTION_RAISE, amount = 0}),
+  {turn, #state{not_talked = [#seat{player = P2, cards = Cards2, chips = Chips2}], talked = [#seat{player = P1, cards = Cards1, chips = Chips1}]}} = G:dump(),
+  ok = G:call(#p2g_action{player = P2, action = ?ACTION_RAISE, amount = 0}),
+  {river, #state{not_talked = [#seat{player = P1, cards = Cards1, chips = Chips1}, #seat{player = P2, cards = Cards2, chips = Chips2}], talked = []}} = G:dump(),
+  
+  ok = G:call(#p2g_action{player = P1, action = ?ACTION_RAISE, amount = 0}),
+  {river, #state{not_talked = [#seat{player = P2, cards = Cards2, chips = Chips2}], talked = [#seat{player = P1, cards = Cards1, chips = Chips1}]}} = G:dump(),
+  ok = G:call(#p2g_action{player = P2, action = ?ACTION_RAISE, amount = 0}),
+  {finished, #state{not_talked = [#seat{player = P1, cards = Cards1, chips = Chips1}, #seat{player = P2, cards = Cards2, chips = Chips2}], talked = []}} = G:dump(),
+  
+  ignored = G:call(#p2g_action{player = P1, action = ?ACTION_RAISE, amount = 0}),
+  {finished, #state{not_talked = [#seat{player = P1, cards = Cards1, chips = Chips1}, #seat{player = P2, cards = Cards2, chips = Chips2}], talked = []}} = G:dump(),
+  ignored = G:call(#p2g_action{player = P2, action = ?ACTION_RAISE, amount = 0}),
+  {finished, #state{not_talked = [#seat{player = P1, cards = Cards1, chips = Chips1}, #seat{player = P2, cards = Cards2, chips = Chips2}], talked = []}} = G:dump(),
+  
   ok = G:stop(),
   ok = P1:stop(),
   ok = P2:stop(),
   ok = T:stop(),
-  ok = L:stop(),
-  ok.
+  ok = L:stop().

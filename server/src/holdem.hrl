@@ -12,6 +12,7 @@
 
 -define(SMALL_BLIND, 100).
 -define(BIG_BLIND, 200).
+-define(INIT_CHIPS, 10000).
 
 %% client to server protocols
 -record(c2s_join_table, {table_id = -1}).
