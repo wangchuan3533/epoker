@@ -70,8 +70,8 @@ handle_sync_event(_Event, _From, StateName, StateData) ->
 handle_info(_Info, StateName, StateData) ->
 	{next_state, StateName, StateData}.
 
-terminate(_Reason, _StateName, _StateData) ->
-  io:format("deck ~w stoped.~n", [this()]),
+terminate(Reason, _StateName, _StateData) ->
+  io:format("deck ~p stoped for reaseon ~p~n", [this(), Reason]),
 	ok.
 
 code_change(_OldVsn, StateName, StateData, _Extra) ->

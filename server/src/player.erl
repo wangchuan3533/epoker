@@ -99,7 +99,8 @@ handle_sync_event(_Event, _From, StateName, StateData) ->
 handle_info(_Info, StateName, StateData) ->
 	{next_state, StateName, StateData}.
 
-terminate(_Reason, StateName, #state{table = Table, game = Game}) ->
+terminate(Reason, StateName, #state{table = Table, game = Game}) ->
+  io:format("player ~p stoped for reason ~p~n", [this(), Reason]),
   case StateName of
     in_game ->
       ok = Game:call(#p2g_action{player = this(), action = ?ACTION_FOLD}),
@@ -109,7 +110,6 @@ terminate(_Reason, StateName, #state{table = Table, game = Game}) ->
     in_lobby ->
       ok
   end,
-  io:format("player ~w stoped.~n", [this()]),
 	ok.
 
 code_change(_OldVsn, StateName, StateData, _Extra) ->

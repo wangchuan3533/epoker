@@ -29,7 +29,7 @@ test1() ->
   [0] = P1:call(#c2s_list_table{}),
   ok = Table:call(start),
   ok = P1:call(#c2s_action{action = ?ACTION_RAISE, amount = 100}),
-  ok = P2:call(#c2s_action{action = ?ACTION_RAISE, amount = 100}),
+  ok = P2:call(#c2s_action{action = ?ACTION_RAISE, amount = 0}),
   ok = P1:call(#c2s_leave_game{}),
   ok = P1:call(#c2s_leave_table{}),
   ok = P2:call(#c2s_leave_game{}),

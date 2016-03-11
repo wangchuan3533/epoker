@@ -104,14 +104,13 @@ handle_sync_event(_Event, _From, StateName, StateData) ->
 handle_info(_Info, StateName, StateData) ->
 	{next_state, StateName, StateData}.
 
-terminate(_Reason, _StateName, #state{id = Id, lobby = Lobby}) ->
+terminate(Reason, _StateName, #state{id = Id, lobby = Lobby}) ->
+  ok = io:format("table ~p stoped for reason ~p~n", [this(), Reason]),
   ok = Lobby:cast(#t2l_table_stopped{table_id = Id}),
-  ok = io:format("table ~w stoped.~n", [this()]),
 	ok.
 
 code_change(_OldVsn, StateName, StateData, _Extra) ->
 	{ok, StateName, StateData}.
-
 
 %% tests
 dump(#table{pid = Pid}) ->

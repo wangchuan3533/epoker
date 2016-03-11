@@ -99,7 +99,8 @@ handle_cast(_Msg, State) ->
 handle_info(_Info, State) ->
 	{noreply, State}.
 
-terminate(_Reason, #state{full_tables = FullTables, not_full_tables = NotFullTables}) ->
+terminate(Reason, #state{full_tables = FullTables, not_full_tables = NotFullTables}) ->
+  ok = io:format("lobby ~p stoped for reaseon ~p~n", [this(), Reason]),
   %% stop all tables
   ok = ets:foldl(fun({TableId, Table}, ok) ->
     ok = io:format("TableId ~w stoped~n", [TableId]),
@@ -111,7 +112,6 @@ terminate(_Reason, #state{full_tables = FullTables, not_full_tables = NotFullTab
     Table:stop()
   end, ok, NotFullTables),
   true = ets:delete_all_objects(NotFullTables),
-  io:format("lobby ~w stoped.~n", [this()]),
 	ok.
 
 code_change(_OldVsn, State, _Extra) ->
