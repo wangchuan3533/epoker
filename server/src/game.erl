@@ -131,7 +131,7 @@ next(StateName, StateData) ->
   {StateName, StateData}.
 
 %% to do give awards
-showdown(StateName, StateData = #state{cards = Cards}) ->
+showdown(StateName, StateData = #state{cards = Cards, deck = Deck}) ->
   NewStateName = river,
   NewCards = lists:append(Cards, [Deck:call(get) || _ <- lists:seq(1, card_num(NewStateName) - card_num(StateName))]),
   ok = io:format("showdown from ~p data ~p ~n", [StateName, StateData]),

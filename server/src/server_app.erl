@@ -8,7 +8,9 @@ start(_Type, _Args) ->
   {ok, _Pid} = lobby:start_link(),
   Dispatch = cowboy_router:compile([
     {'_', [
-      {"/", hello_handler, []},
+      {"/[...]", cowboy_static, {dir, "../../..//client"}},
+      %%{"/[...]", cowboy_static, {priv_dir, server, "public"}},
+      %%{"/hello", hello_handler, []},
       {"/echo", ws_echo_handler, []}
     ]}
   ]),
