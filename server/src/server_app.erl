@@ -9,8 +9,7 @@ start(_Type, _Args) ->
   Dispatch = cowboy_router:compile([
     {'_', [
       {"/public/[...]", cowboy_static, {dir, "../../../client"}},
-      %%{"/[...]", cowboy_static, {priv_dir, server, "public"}},
-      %%{"/hello", hello_handler, []},
+      {"/proto/[...]", cowboy_static, {dir, "../../../proto"}},
       {"/echo", ws_echo_handler, []}
     ]}
   ]),

@@ -1,0 +1,62 @@
+{
+    "package": null,
+    "messages": [
+        {
+            "name": "Message",
+            "fields": [
+                {
+                    "rule": "required",
+                    "type": "Type",
+                    "name": "type",
+                    "id": 1
+                },
+                {
+                    "rule": "required",
+                    "type": "bytes",
+                    "name": "data",
+                    "id": 2
+                }
+            ],
+            "enums": [
+                {
+                    "name": "Type",
+                    "values": [
+                        {
+                            "name": "JOIN_TABLE_REQ",
+                            "id": 1
+                        },
+                        {
+                            "name": "JOIN_TABLE_RES",
+                            "id": 2
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "JoinTableReq",
+            "fields": [
+                {
+                    "rule": "required",
+                    "type": "int32",
+                    "name": "table_id",
+                    "id": 1,
+                    "options": {
+                        "default": -1
+                    }
+                }
+            ]
+        },
+        {
+            "name": "JoinTableRes",
+            "fields": [
+                {
+                    "rule": "required",
+                    "type": "int32",
+                    "name": "table_id",
+                    "id": 1
+                }
+            ]
+        }
+    ]
+}

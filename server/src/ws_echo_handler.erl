@@ -1,6 +1,7 @@
 -module(ws_echo_handler).
 -behaviour(cowboy_websocket_handler).
 -include("holdem.hrl").
+-include("messages_pb.hrl").
 
 -export([init/3]).
 -export([websocket_init/3]).
@@ -28,6 +29,13 @@ websocket_handle({text, Text}, Req, State = #state{player = Player}) ->
   end,
 	{reply, {text, Resp}, Req, State};
 websocket_handle({binary, Data}, Req, State) ->
+  Message = messages_pb:decode_message(Data),
+  ok = case Message of
+    #message{type = 'JOIN_TABLE_REQ', data = PbData} ->
+      JoinTableReq = messages_pb:decode_jointablereq(PbData),
+      ok = io:format("~p~n", [JoinTableReq]);
+    _ -> ok
+  end,
 	{reply, {binary, Data}, Req, State};
 websocket_handle(_Frame, Req, State) ->
 	{ok, Req, State}.
