@@ -10,7 +10,7 @@
         });
         start.inputEnabled = true;
         return start.events.onInputUp.add(function() {
-          return game.state.start('game');
+          return game.state.start('lobby');
         });
       }
     };

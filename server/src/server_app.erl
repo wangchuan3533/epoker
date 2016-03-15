@@ -8,9 +8,11 @@ start(_Type, _Args) ->
   {ok, _Pid} = lobby:start_link(),
   Dispatch = cowboy_router:compile([
     {'_', [
+      {"/", cowboy_static, {file, "../../../client/index.html"}},
       {"/public/[...]", cowboy_static, {dir, "../../../client"}},
       {"/proto/[...]", cowboy_static, {dir, "../../../proto"}},
-      {"/echo", ws_echo_handler, []}
+      {"/ws", ws_handler, []},
+      {"/profile/:pid", profile_handler, []}
     ]}
   ]),
   {ok, _} = cowboy:start_http(my_http_listener, 100, [{port, 8080}],

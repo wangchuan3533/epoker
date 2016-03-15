@@ -2,7 +2,20 @@ message Message {
   enum Type {
     JOIN_TABLE_REQ = 1;
     JOIN_TABLE_RES = 2;
+    
+    LEAVE_TABLE_REQ = 3;
+    LEAVE_TABLE_RES = 4;
+    
+    LIST_TABLE_REQ = 5;
+    LIST_TABLE_RES = 6;
+    
+    LEAVE_GAME_REQ = 7;
+    LEAVE_GAME_RES = 8;
+    
+    ACTION_REQ = 9;
+    ACTION_RES = 10;
   }
+  
   required Type type = 1;
   required bytes data = 2;
 }
@@ -12,5 +25,53 @@ message JoinTableReq {
 }
 
 message JoinTableRes {
-  required int32 table_id = 1;
+  required uint32 errno = 1;
+  required TablePb table = 2;
+}
+
+message LeaveTableReq {
+}
+
+message LeaveTableRes {
+  required uint32 errno = 1;
+}
+
+message ListTableReq {
+}
+
+message ListTableRes {
+  required uint32 errno = 1;
+  repeated uint32 table_ids = 2;
+}
+
+message LeaveGameReq {
+}
+
+message LeaveGameRes {
+  required uint32 errno = 1;
+}
+
+message ActionReq {
+  enum Action {
+    ACTION_RAISE = 1;
+    ACTION_FOLD = 2;
+  }
+  required Action action = 1;
+  required uint32 amount = 2;
+}
+
+message ActionRes {
+  required uint32 errno = 1;
+}
+
+message PlayerPb {
+  required uint32 id = 1;
+  required string name = 2;
+  required uint32 chips = 3;
+  optional string head_img = 4;
+}
+
+message TablePb {
+  required int32 id = 1;
+  repeated PlayerPb players = 2;
 }

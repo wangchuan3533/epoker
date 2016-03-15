@@ -7,7 +7,8 @@
     game.state.add('boot', require('./boot'));
     game.state.add('load', require('./load'));
     game.state.add('menu', require('./menu'));
-    game.state.add('game', require('./game'));
+    game.state.add('lobby', require('./lobby'));
+    game.state.add('table', require('./table'));
     return game.state.start('boot');
   });
 

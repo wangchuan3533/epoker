@@ -1,5 +1,5 @@
 requirejs.config
-  baseUrl: 'lib'
+  baseUrl: '/public/lib'
   paths:
     app: '../app'
 

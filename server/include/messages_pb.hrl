@@ -16,7 +16,84 @@
 -ifndef(JOINTABLERES_PB_H).
 -define(JOINTABLERES_PB_H, true).
 -record(jointableres, {
-    table_id = erlang:error({required, table_id})
+    errno = erlang:error({required, errno}),
+    table = erlang:error({required, table})
+}).
+-endif.
+
+-ifndef(LEAVETABLEREQ_PB_H).
+-define(LEAVETABLEREQ_PB_H, true).
+-record(leavetablereq, {
+    
+}).
+-endif.
+
+-ifndef(LEAVETABLERES_PB_H).
+-define(LEAVETABLERES_PB_H, true).
+-record(leavetableres, {
+    errno = erlang:error({required, errno})
+}).
+-endif.
+
+-ifndef(LISTTABLEREQ_PB_H).
+-define(LISTTABLEREQ_PB_H, true).
+-record(listtablereq, {
+    
+}).
+-endif.
+
+-ifndef(LISTTABLERES_PB_H).
+-define(LISTTABLERES_PB_H, true).
+-record(listtableres, {
+    errno = erlang:error({required, errno}),
+    table_ids = []
+}).
+-endif.
+
+-ifndef(LEAVEGAMEREQ_PB_H).
+-define(LEAVEGAMEREQ_PB_H, true).
+-record(leavegamereq, {
+    
+}).
+-endif.
+
+-ifndef(LEAVEGAMERES_PB_H).
+-define(LEAVEGAMERES_PB_H, true).
+-record(leavegameres, {
+    errno = erlang:error({required, errno})
+}).
+-endif.
+
+-ifndef(ACTIONREQ_PB_H).
+-define(ACTIONREQ_PB_H, true).
+-record(actionreq, {
+    action = erlang:error({required, action}),
+    amount = erlang:error({required, amount})
+}).
+-endif.
+
+-ifndef(ACTIONRES_PB_H).
+-define(ACTIONRES_PB_H, true).
+-record(actionres, {
+    errno = erlang:error({required, errno})
+}).
+-endif.
+
+-ifndef(PLAYERPB_PB_H).
+-define(PLAYERPB_PB_H, true).
+-record(playerpb, {
+    id = erlang:error({required, id}),
+    name = erlang:error({required, name}),
+    chips = erlang:error({required, chips}),
+    head_img
+}).
+-endif.
+
+-ifndef(TABLEPB_PB_H).
+-define(TABLEPB_PB_H, true).
+-record(tablepb, {
+    id = erlang:error({required, id}),
+    players = []
 }).
 -endif.
 

@@ -28,6 +28,38 @@
                         {
                             "name": "JOIN_TABLE_RES",
                             "id": 2
+                        },
+                        {
+                            "name": "LEAVE_TABLE_REQ",
+                            "id": 3
+                        },
+                        {
+                            "name": "LEAVE_TABLE_RES",
+                            "id": 4
+                        },
+                        {
+                            "name": "LIST_TABLE_REQ",
+                            "id": 5
+                        },
+                        {
+                            "name": "LIST_TABLE_RES",
+                            "id": 6
+                        },
+                        {
+                            "name": "LEAVE_GAME_REQ",
+                            "id": 7
+                        },
+                        {
+                            "name": "LEAVE_GAME_RES",
+                            "id": 8
+                        },
+                        {
+                            "name": "ACTION_REQ",
+                            "id": 9
+                        },
+                        {
+                            "name": "ACTION_RES",
+                            "id": 10
                         }
                     ]
                 }
@@ -52,9 +84,155 @@
             "fields": [
                 {
                     "rule": "required",
-                    "type": "int32",
-                    "name": "table_id",
+                    "type": "uint32",
+                    "name": "errno",
                     "id": 1
+                },
+                {
+                    "rule": "required",
+                    "type": "TablePb",
+                    "name": "table",
+                    "id": 2
+                }
+            ]
+        },
+        {
+            "name": "LeaveTableReq",
+            "fields": []
+        },
+        {
+            "name": "LeaveTableRes",
+            "fields": [
+                {
+                    "rule": "required",
+                    "type": "uint32",
+                    "name": "errno",
+                    "id": 1
+                }
+            ]
+        },
+        {
+            "name": "ListTableReq",
+            "fields": []
+        },
+        {
+            "name": "ListTableRes",
+            "fields": [
+                {
+                    "rule": "required",
+                    "type": "uint32",
+                    "name": "errno",
+                    "id": 1
+                },
+                {
+                    "rule": "repeated",
+                    "type": "uint32",
+                    "name": "table_ids",
+                    "id": 2
+                }
+            ]
+        },
+        {
+            "name": "LeaveGameReq",
+            "fields": []
+        },
+        {
+            "name": "LeaveGameRes",
+            "fields": [
+                {
+                    "rule": "required",
+                    "type": "uint32",
+                    "name": "errno",
+                    "id": 1
+                }
+            ]
+        },
+        {
+            "name": "ActionReq",
+            "fields": [
+                {
+                    "rule": "required",
+                    "type": "Action",
+                    "name": "action",
+                    "id": 1
+                },
+                {
+                    "rule": "required",
+                    "type": "uint32",
+                    "name": "amount",
+                    "id": 2
+                }
+            ],
+            "enums": [
+                {
+                    "name": "Action",
+                    "values": [
+                        {
+                            "name": "ACTION_RAISE",
+                            "id": 1
+                        },
+                        {
+                            "name": "ACTION_FOLD",
+                            "id": 2
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "ActionRes",
+            "fields": [
+                {
+                    "rule": "required",
+                    "type": "uint32",
+                    "name": "errno",
+                    "id": 1
+                }
+            ]
+        },
+        {
+            "name": "PlayerPb",
+            "fields": [
+                {
+                    "rule": "required",
+                    "type": "uint32",
+                    "name": "id",
+                    "id": 1
+                },
+                {
+                    "rule": "required",
+                    "type": "string",
+                    "name": "name",
+                    "id": 2
+                },
+                {
+                    "rule": "required",
+                    "type": "uint32",
+                    "name": "chips",
+                    "id": 3
+                },
+                {
+                    "rule": "optional",
+                    "type": "string",
+                    "name": "head_img",
+                    "id": 4
+                }
+            ]
+        },
+        {
+            "name": "TablePb",
+            "fields": [
+                {
+                    "rule": "required",
+                    "type": "int32",
+                    "name": "id",
+                    "id": 1
+                },
+                {
+                    "rule": "repeated",
+                    "type": "PlayerPb",
+                    "name": "players",
+                    "id": 2
                 }
             ]
         }

@@ -45,10 +45,10 @@ in_lobby(_Event, StateData) ->
 	{next_state, in_lobby, StateData}.
 
 in_lobby(#c2s_join_table{table_id = Tid}, _From, StateData = #state{lobby = Lobby}) ->
-  {ok, {TableId, Table}} = Lobby:call(#p2l_get_table{table_id = Tid}),
-  ok = Table:call(#p2t_join{player = this()}),
+  {ok, {_TableId, Table}} = Lobby:call(#p2l_get_table{table_id = Tid}),
+  Ret = Table:call(#p2t_join{player = this()}),
   NewStateData = StateData#state{table = Table},
-	{reply, TableId, in_table, NewStateData};
+	{reply, Ret, in_table, NewStateData};
 
 in_lobby(Event, From, StateData) ->
   handle_sync_event(Event, From, in_lobby, StateData).

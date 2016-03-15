@@ -74,14 +74,15 @@ handle_event(_Event, StateName, StateData) ->
 
 %% add player
 handle_sync_event(#p2t_join{player = Player}, _From, StateName, StateData = #state{id = Id, lobby = Lobby, playing_players = PlayingPlayers, waiting_players = WaitingPlayers}) ->
-  if
-    length(PlayingPlayers) + length(WaitingPlayers) >= ?MAX_PLAYERS ->
-      {reply, full, StateName, StateData};
-    length(PlayingPlayers) + length(WaitingPlayers) == ?MAX_PLAYERS - 1->
-      ok = Lobby:call(#t2l_table_full{table_id = Id}),
-      {reply, ok, StateName, StateData#state{waiting_players = [Player | WaitingPlayers]}};
-    true ->
-      {reply, ok, StateName, StateData#state{waiting_players = [Player | WaitingPlayers]}}
+  if length(PlayingPlayers) + length(WaitingPlayers) >= ?MAX_PLAYERS ->
+    {reply, full, StateName, StateData};
+  true ->
+    ok = if length(PlayingPlayers) + length(WaitingPlayers) == ?MAX_PLAYERS - 1 ->
+      Lobby:call(#t2l_table_full{table_id = Id});
+    true -> ok
+    end,
+    WaitingPlayers1 = [Player | WaitingPlayers],
+    {reply, {ok, {Id, lists:append(PlayingPlayers, WaitingPlayers1)}}, StateName, StateData#state{waiting_players = WaitingPlayers1}}
   end;
 
 %% del player
@@ -127,9 +128,9 @@ test_join_leave() ->
   A = player:new(Lobby),
   B = player:new(Lobby),
   {waiting, #state{waiting_players = [], playing_players = [], game = undefined}} = Table:dump(),
-  ok = Table:call(#p2t_join{player = A}),
+  {ok, {0, _}} = Table:call(#p2t_join{player = A}),
   {waiting, #state{waiting_players = [A], playing_players = [], game = undefined}} = Table:dump(),
-  ok = Table:call(#p2t_join{player = B}),
+  {ok, {0, _}} = Table:call(#p2t_join{player = B}),
   {waiting, #state{waiting_players = [B, A], playing_players = [], game = undefined}} = Table:dump(),
   ok = Table:call(#p2t_leave{player = B}),
   {waiting, #state{waiting_players = [A], playing_players = [], game = undefined}} = Table:dump(),
@@ -146,11 +147,11 @@ test_game_start() ->
   A = player:new(Lobby),
   B = player:new(Lobby),
   C = player:new(Lobby),
-  TableId = A:call(#c2s_join_table{table_id = TableId}),
-  TableId = B:call(#c2s_join_table{table_id = TableId}),
+  {ok, {TableId, _}} = A:call(#c2s_join_table{table_id = TableId}),
+  {ok, {TableId, _}} = B:call(#c2s_join_table{table_id = TableId}),
   ok = Table:call(start),
   {playing, #state{waiting_players = [], playing_players = [B, A], game = Game = #game{}}} = Table:dump(),
-  TableId = C:call(#c2s_join_table{table_id = 0}),
+  {ok, {TableId, _}} = C:call(#c2s_join_table{table_id = 0}),
   {preflop, _StateData} = Game:dump(),
   {playing, #state{waiting_players = [C], playing_players = [B, A]}} = Table:dump(),
   ok = Game:stop(),
