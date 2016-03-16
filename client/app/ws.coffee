@@ -1,10 +1,11 @@
-define (require) ->
+module.exports =
   (game) ->
     ws = new WebSocket 'ws://127.0.0.1:8080/ws'
     ws.binaryType = 'arraybuffer'
     
     ws.onopen = ->
       console.log 'connected'
+      @testProtocol()
     ws.onmessage = (evt)->
       console.log game.protocol.onMessage evt.data
     ws.onclose = ->

@@ -1,16 +1,15 @@
 (function() {
-  define(function(require) {
-    var Player;
-    return Player = (function() {
-      function Player(game) {
-        var container;
-        this.game = game;
-        container = game.add.group();
-      }
+  var Player;
 
-      return Player;
+  module.exports = Player = (function() {
+    function Player(game) {
+      var container;
+      this.game = game;
+      container = game.add.group();
+    }
 
-    })();
-  });
+    return Player;
+
+  })();
 
 }).call(this);

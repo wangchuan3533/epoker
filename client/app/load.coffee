@@ -1,6 +1,10 @@
-define (require) ->
+module.exports =
   preload: (game) ->
 
   create: (game) ->
-    game.state.start 'menu'
-    game.ws.testProtocol()
+    EZGUI.components.LoadingScreen.visible = true
+    
+    setTimeout (->
+      EZGUI.components.LoadingScreen.visible = false
+      game.state.start 'menu'
+    ), 1000

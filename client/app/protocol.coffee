@@ -1,6 +1,6 @@
-define (require) ->
+module.exports =
   (game) ->
-    protobuf = require 'protobuf'
+    protobuf = require 'protobufjs'
     builder = protobuf.loadJsonFile '/proto/messages.json'
     
     Message = builder.build 'Message'

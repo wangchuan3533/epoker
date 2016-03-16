@@ -1,5 +1,6 @@
-define (require) ->
+module.exports =
   create: (game) ->
+    EZGUI.components.TableScreen.visible = true
   
   update: (game) ->
     {table} = game.storage

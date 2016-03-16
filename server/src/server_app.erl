@@ -10,7 +10,7 @@ start(_Type, _Args) ->
     {'_', [
       {"/", cowboy_static, {file, "../../../client/index.html"}},
       {"/public/[...]", cowboy_static, {dir, "../../../client"}},
-      {"/proto/[...]", cowboy_static, {dir, "../../../proto"}},
+      {"/proto/[...]", cowboy_static, {dir, "../../../proto", [{mimetypes, {<<"text">>, <<"plain">>, []}}]}},
       {"/ws", ws_handler, []},
       {"/profile/:pid", profile_handler, []}
     ]}
