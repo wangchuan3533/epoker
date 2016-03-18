@@ -19,12 +19,13 @@
 -record(state, {
   lobby = undefined,
   table = undefined,
-  game = undefined
+  game = undefined,
+  user = undefined
 }).
 
 %% API.
-new(Lobby) ->
-	{ok, Pid} = gen_fsm:start_link(?MODULE, [Lobby], []),
+new(Opts) ->
+	{ok, Pid} = gen_fsm:start_link(?MODULE, [Opts], []),
   #player{pid = Pid}.
 
 stop(#player{pid = Pid}) ->
@@ -38,8 +39,8 @@ this() ->
   #player{pid = self()}.
 
 %% gen_fsm.
-init([Lobby]) ->
-	{ok, in_lobby, #state{lobby = Lobby}}.
+init([{User, Lobby}]) ->
+	{ok, in_lobby, #state{lobby = Lobby, user = User}}.
 
 in_lobby(_Event, StateData) ->
 	{next_state, in_lobby, StateData}.
@@ -125,7 +126,8 @@ test() ->
 
 test_join() ->
   L = lobby:new(),
-  P = player:new(L),
+  U = #user{id = 1, name = 1},
+  P = player:new({U, L}),
   {in_lobby, #state{table = undefined}} = P:dump(),
   P:call(#c2s_join_table{table_id = -1}),
   {in_table, #state{table = T}} = P:dump(),

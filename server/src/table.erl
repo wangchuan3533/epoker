@@ -125,8 +125,10 @@ test() ->
 test_join_leave() ->
   Lobby = lobby:new(),
   Table = table:new({0, Lobby}),
-  A = player:new(Lobby),
-  B = player:new(Lobby),
+  U1 = #user{id = 1, name = 1},
+  U2 = #user{id = 2, name = 2},
+  A = player:new({U1, Lobby}),
+  B = player:new({U2, Lobby}),
   {waiting, #state{waiting_players = [], playing_players = [], game = undefined}} = Table:dump(),
   {ok, {0, _}} = Table:call(#p2t_join{player = A}),
   {waiting, #state{waiting_players = [A], playing_players = [], game = undefined}} = Table:dump(),
@@ -144,9 +146,14 @@ test_join_leave() ->
 test_game_start() ->
   Lobby = lobby:new(),
   {ok, {TableId, Table}} = Lobby:call(#p2l_get_table{}),
-  A = player:new(Lobby),
-  B = player:new(Lobby),
-  C = player:new(Lobby),
+  
+  U1 = #user{id = 1, name = 1},
+  U2 = #user{id = 2, name = 2},
+  U3 = #user{id = 3, name = 3},
+  
+  A = player:new({U1, Lobby}),
+  B = player:new({U2, Lobby}),
+  C = player:new({U3, Lobby}),
   {ok, {TableId, _}} = A:call(#c2s_join_table{table_id = TableId}),
   {ok, {TableId, _}} = B:call(#c2s_join_table{table_id = TableId}),
   ok = Table:call(start),

@@ -16,7 +16,7 @@
 
 ERLANG_MK_FILENAME := $(realpath $(lastword $(MAKEFILE_LIST)))
 
-ERLANG_MK_VERSION = 2.0.0-pre.2-79-g35e1283
+ERLANG_MK_VERSION = 2.0.0-pre.2-88-g865bc1f
 
 # Core configuration.
 
@@ -1843,6 +1843,14 @@ pkg_gen_unix_fetch = git
 pkg_gen_unix_repo = https://github.com/msantos/gen_unix
 pkg_gen_unix_commit = master
 
+PACKAGES += geode
+pkg_geode_name = geode
+pkg_geode_description = geohash/proximity lookup in pure, uncut erlang.
+pkg_geode_homepage = https://github.com/bradfordw/geode
+pkg_geode_fetch = git
+pkg_geode_repo = https://github.com/bradfordw/geode
+pkg_geode_commit = master
+
 PACKAGES += getopt
 pkg_getopt_name = getopt
 pkg_getopt_description = Module to parse command line arguments using the GNU getopt syntax
@@ -2070,9 +2078,9 @@ pkg_jerg_commit = master
 PACKAGES += jesse
 pkg_jesse_name = jesse
 pkg_jesse_description = jesse (JSon Schema Erlang) is an implementation of a json schema validator for Erlang.
-pkg_jesse_homepage = https://github.com/klarna/jesse
+pkg_jesse_homepage = https://github.com/for-GET/jesse
 pkg_jesse_fetch = git
-pkg_jesse_repo = https://github.com/klarna/jesse
+pkg_jesse_repo = https://github.com/for-GET/jesse
 pkg_jesse_commit = master
 
 PACKAGES += jiffy
@@ -2123,6 +2131,14 @@ pkg_json_rec_fetch = git
 pkg_json_rec_repo = https://github.com/justinkirby/json_rec
 pkg_json_rec_commit = master
 
+PACKAGES += jsone
+pkg_jsone_name = jsone
+pkg_jsone_description = An Erlang library for encoding, decoding JSON data.
+pkg_jsone_homepage = https://github.com/sile/jsone.git
+pkg_jsone_fetch = git
+pkg_jsone_repo = https://github.com/sile/jsone.git
+pkg_jsone_commit = master
+
 PACKAGES += jsonerl
 pkg_jsonerl_name = jsonerl
 pkg_jsonerl_description = yet another but slightly different erlang <-> json encoder/decoder
@@ -2162,6 +2178,14 @@ pkg_kafka_homepage = https://github.com/wooga/kafka-erlang
 pkg_kafka_fetch = git
 pkg_kafka_repo = https://github.com/wooga/kafka-erlang
 pkg_kafka_commit = master
+
+PACKAGES += kafka_protocol
+pkg_kafka_protocol_name = kafka_protocol
+pkg_kafka_protocol_description = Kafka protocol Erlang library
+pkg_kafka_protocol_homepage = https://github.com/klarna/kafka_protocol
+pkg_kafka_protocol_fetch = git
+pkg_kafka_protocol_repo = https://github.com/klarna/kafka_protocol.git
+pkg_kafka_protocol_commit = master
 
 PACKAGES += kai
 pkg_kai_name = kai
@@ -5107,8 +5131,12 @@ define compat_erlc_opts_to_list
 endef
 
 define compat_rebar_config
-{deps, [$(call comma_list,$(foreach d,$(DEPS),\
-	{$(call dep_name,$d),".*",{git,"$(call dep_repo,$d)","$(call dep_commit,$d)"}}))]}.
+{deps, [
+$(call comma_list,$(foreach d,$(DEPS),\
+	$(if $(filter hex,$(call dep_fetch,$d)),\
+		{$(call dep_name,$d)$(comma)"$(call dep_repo,$d)"},\
+		{$(call dep_name,$d)$(comma)".*"$(comma){git,"$(call dep_repo,$d)"$(comma)"$(call dep_commit,$d)"}})))
+]}.
 {erl_opts, $(call compat_erlc_opts_to_list,$(ERLC_OPTS))}.
 endef
 
@@ -5178,8 +5206,8 @@ help::
 		"  bootstrap          Generate a skeleton of an OTP application" \
 		"  bootstrap-lib      Generate a skeleton of an OTP library" \
 		"  bootstrap-rel      Generate the files needed to build a release" \
-		"  new-app n=NAME     Create a new local OTP application NAME" \
-		"  new-lib n=NAME     Create a new local OTP library NAME" \
+		"  new-app in=NAME    Create a new local OTP application NAME" \
+		"  new-lib in=NAME    Create a new local OTP library NAME" \
 		"  new t=TPL n=NAME   Generate a module NAME based on the template TPL" \
 		"  new t=T n=N in=APP Generate a module NAME based on the template TPL in APP" \
 		"  list-templates     List available templates"

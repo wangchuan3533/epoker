@@ -302,8 +302,11 @@ test() ->
   ok = test_fold().
 test_check() ->
   L = lobby:new(),
-  P1 = player:new(L),
-  P2 = player:new(L),
+  
+  U1 = #user{id = 1, name = 1},
+  U2 = #user{id = 2, name = 2},
+  P1 = player:new({U1, L}),
+  P2 = player:new({U2, L}),
   {ok, {TableId, _}} = P1:call(#c2s_join_table{}),
   {ok, {TableId, _}} = P2:call(#c2s_join_table{}),
   {ok, {TableId, T}} = L:call(#p2l_get_table{table_id = TableId}),
@@ -347,8 +350,10 @@ test_check() ->
 
 test_fold() ->
   L = lobby:new(),
-  P1 = player:new(L),
-  P2 = player:new(L),
+  U1 = #user{id = 1, name = 1},
+  U2 = #user{id = 2, name = 2},
+  P1 = player:new({U1, L}),
+  P2 = player:new({U2, L}),
   {ok, {TableId, _}} = P1:call(#c2s_join_table{}),
   {ok, {TableId, _}} = P2:call(#c2s_join_table{}),
   {ok, {TableId, T}} = L:call(#p2l_get_table{table_id = TableId}),

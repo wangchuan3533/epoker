@@ -1,0 +1,17 @@
+{application, server, [
+	{description, "epoker server"},
+	{vsn, "1"},
+	{modules, []},
+	{registered, [server_sup]},
+	{applications, [
+		kernel,
+		stdlib,
+        mnesia,
+		cowboy,
+        jiffy,
+        protobuffs,
+        uuid
+	]},
+	{mod, {server_app, []}},
+	{env, []}
+]}.

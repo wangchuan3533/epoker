@@ -20,8 +20,10 @@ test() ->
 
 test1() ->
   Lobby = lobby:new(),
-  P1 = player:new(Lobby),
-  P2 = player:new(Lobby),
+  U1 = #user{id = 1, name = 1},
+  U2 = #user{id = 2, name = 2},
+  P1 = player:new({U1, Lobby}),
+  P2 = player:new({U2, Lobby}),
   {ok, {TableId, _}} = P1:call(#c2s_join_table{table_id = -1}),
   {ok, {TableId, _}} = P2:call(#c2s_join_table{table_id = -1}),
   {ok, {TableId, Table}} = Lobby:call(#p2l_get_table{table_id = TableId}),
