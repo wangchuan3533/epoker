@@ -3,6 +3,7 @@ import Dialog from 'material-ui/lib/dialog';
 import FlatButton from 'material-ui/lib/flat-button';
 import RaisedButton from 'material-ui/lib/raised-button';
 import TextField from 'material-ui/lib/text-field';
+import jquery from 'jquery';
 
 const styles = {
   container: {
@@ -33,7 +34,7 @@ export default class LoginDialog extends React.Component {
   };
   
   handleLogin = () => {
-    $.ajax({
+    jquery.ajax({
       type: 'POST',
       url: '/login',
       contentType: 'application/json; charset=utf-8',
