@@ -15,7 +15,7 @@
 -define(INIT_CHIPS, 10000).
 -define(RECORD_TO_TUPLELIST(Rec, Ref), lists:zip(record_info(fields, Rec),tl(tuple_to_list(Ref)))).
 
--record(user, {id, name, chips = ?INIT_CHIPS}).
+-record(user, {id, password, name, chips = ?INIT_CHIPS}).
 
 %% client to server protocols
 -record(c2s_join_table, {table_id = -1}).

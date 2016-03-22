@@ -17,18 +17,14 @@ init(_, _, _) ->
 	{upgrade, protocol, cowboy_websocket}.
 
 websocket_init(_Type, Req, _Opts) ->
-  {SessionId, Req2} = cowboy_req:cookie(<<"sessionid">>, Req, <<"undefined">>),
-  if SessionId == <<"undefined">> ->
-    {shutdown, Req2};
-  true ->
-    case storage:get(binary:bin_to_list(SessionId)) of
-      {ok, User} ->
-	      Req3 = cowboy_req:compact(Req2),
-	      {ok, Req3, #state{player = player:new({User, lobby})}};
-      {error, Reason} ->
-        ok = io:format("auth failed reason ~p~n", [Reason]),
-        {shutdown, Req2}
-      end
+  {Token, Req2} = cowboy_req:binding(token, Req),
+  case storage:get(Token) of
+    {ok, User} ->
+      Req3 = cowboy_req:compact(Req2),
+      {ok, Req3, #state{player = player:new({User, lobby})}};
+    {error, Reason} ->
+      ok = io:format("auth failed reason ~p~n", [Reason]),
+      {shutdown, Req2}
   end.
 
 websocket_handle({text, Text}, Req, State = #state{player = Player}) ->

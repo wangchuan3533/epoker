@@ -12,8 +12,7 @@ content_types_provided(Req, State) ->
 	{[{{<<"application">>, <<"json">>, '*'}, get_json}], Req, State}.
 
 get_json(Req, State) ->
-  {B, Req2} = cowboy_req:binding(uid, Req),
-  Uid = list_to_integer(binary_to_list(B)),
+  {Uid, Req2} = cowboy_req:binding(uid, Req),
   {ok, User} = storage:get(Uid),
   Ret = jiffy:encode({?RECORD_TO_TUPLELIST(user, User)}),
 	{Ret, Req2, State}.

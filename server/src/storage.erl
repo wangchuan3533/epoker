@@ -23,13 +23,13 @@ test() ->
   {atomic, ok} = test_clear().
   
 test_write() ->
-  mnesia:transaction(fun() -> mnesia:write(#user{id = 1, name = user1, chips = 100000}) end),
-  mnesia:transaction(fun() -> mnesia:write(#user{id = 2, name = user2, chips = 100000}) end),
-  mnesia:transaction(fun() -> mnesia:write(#user{id = 3, name = user3, chips = 100000}) end),
-  mnesia:transaction(fun() -> mnesia:write(#user{id = 4, name = user4, chips = 100000}) end),
-  mnesia:transaction(fun() -> mnesia:write(#user{id = 5, name = user5, chips = 100000}) end),
-  mnesia:transaction(fun() -> mnesia:write(#user{id = 6, name = user6, chips = 100000}) end),
-  mnesia:transaction(fun() -> mnesia:write(#user{id = 7, name = user7, chips = 100000}) end).
+  mnesia:transaction(fun() -> mnesia:write(#user{id = 1, password = 1, name = user1, chips = 100000}) end),
+  mnesia:transaction(fun() -> mnesia:write(#user{id = 2, password = 1, name = user2, chips = 100000}) end),
+  mnesia:transaction(fun() -> mnesia:write(#user{id = 3, password = 1, name = user3, chips = 100000}) end),
+  mnesia:transaction(fun() -> mnesia:write(#user{id = 4, password = 1, name = user4, chips = 100000}) end),
+  mnesia:transaction(fun() -> mnesia:write(#user{id = 5, password = 1, name = user5, chips = 100000}) end),
+  mnesia:transaction(fun() -> mnesia:write(#user{id = 6, password = 1, name = user6, chips = 100000}) end),
+  mnesia:transaction(fun() -> mnesia:write(#user{id = 7, password = 1, name = user7, chips = 100000}) end).
 test_read() ->
   mnesia:transaction(fun() -> mnesia:read(user, 1, read) end).
 test_clear() ->

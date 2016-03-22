@@ -8,12 +8,13 @@ start(_Type, _Args) ->
   {ok, _Pid} = lobby:start_link(),
   Dispatch = cowboy_router:compile([
     {'_', [
-      %%{"/", cowboy_static, {file, "../../../client/index.html"}},
+      %%{"/", index_handler, []},
       {"/", index_handler, []},
-      {"/public/[...]", cowboy_static, {dir, "../../../client"}},
+      {"/ws/:token", ws_handler, []},
+      {"/login", login_handler, []},
+      {"/profile/:uid", profile_handler, []},
       {"/proto/[...]", cowboy_static, {dir, "../../../proto", [{mimetypes, {<<"text">>, <<"plain">>, []}}]}},
-      {"/ws", ws_handler, []},
-      {"/profile/:uid", profile_handler, []}
+      {"/[...]", cowboy_static, {dir, "../../../react-js"}}
     ]}
   ]),
   {ok, _} = cowboy:start_http(my_http_listener, 100, [{port, 8080}],
