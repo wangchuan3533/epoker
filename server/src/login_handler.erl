@@ -21,7 +21,7 @@ handle(Req, State=#state{}) ->
   case {Method, ContentType} of
     {<<"POST">>, {<<"application">>, <<"json">>, _}} ->
       {JsonReqList} = jiffy:decode(Body),
-      case  lists:keyfind(<<"register">>, 1, JsonReqList) of
+      case lists:keyfind(<<"register">>, 1, JsonReqList) of
       {<<"register">>, true} ->
         Uid = generate_uid(),
         User = #user{id = Uid, name = Uid, password = Uid, chips = ?INIT_CHIPS},
