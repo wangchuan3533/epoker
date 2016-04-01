@@ -38,36 +38,37 @@ const Card = ({card}) => {
   }
   
   style = {
-    width: 50,
-    height: 70,
+    width: 40,
+    height: 56,
     position: 'relative',
-    borderStyle: 'solid',
+    borderStyle: 'dotted',
     borderWidth: 1,
-    margin: 5,
-    fontSize: 16,
-    textAlign: 'center',
+    margin: 4,
     color
   }
   return (
     <div style={style}>
       <div style={{
+        width: '100%',
         position: 'absolute',
         top: 0,
-        left: 0
+        textAlign: 'left'
       }}>
         {suit}
       </div>
       <div style={{
+        width: '100%',
         position: 'absolute',
-        top: '36%',
-        left: '37%',
+        top: '37%',
+        textAlign: 'center'
       }}>
         {rank}
       </div>
       <div style={{
+        width: '100%',
         position: 'absolute',
-        right: 0,
-        bottom: 0
+        bottom: 0,
+        textAlign: 'right'
       }}>
         {suit}
       </div>

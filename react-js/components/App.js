@@ -3,7 +3,10 @@ import LoginDialog from '../containers/LoginDialog'
 import Player from './Player'
 import Card from './Card'
 const App = () => (
-  <div style={{float: 'left'}}>
+  <div style={{
+    display: 'flex',
+    flexDirection: 'row'
+  }}>
     <LoginDialog />
     <Card card={1} />
     <Card card={10} />
@@ -15,6 +18,7 @@ const App = () => (
     <Card card={40} />
     <Card card={45} />
     <Card card={50} />
+    <Player status="folded" chips="1000" />
   </div>
 )
 
