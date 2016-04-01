@@ -29584,6 +29584,8 @@
 	      _ws2.default.connect('ws://127.0.0.1:8080/ws/' + token);
 	    }).then(function () {
 	      dispatch(wsConnected());
+	    }).then(function () {
+	      _ws2.default.registerProtocols(dispatch);
 	    });
 	  };
 	};
@@ -42296,6 +42298,7 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+	exports.onMessage = exports.ActionRes = exports.ActionReq = exports.LeaveGameRes = exports.LeaveGameReq = exports.ListTableRes = exports.ListTableReq = exports.LeaveTableRes = exports.LeaveTableReq = exports.JoinTableRes = exports.JoinTableReq = exports.ActionType = exports.MessageType = exports.PlayerPb = exports.TablePb = exports.Message = undefined;
 
 	var _protobufjs = __webpack_require__(580);
 
@@ -42303,7 +42306,57 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	exports.default = _protobufjs2.default;
+	var builder = _protobufjs2.default.loadJsonFile('/proto/messages.json');
+
+	var Message = exports.Message = builder.build('Message');
+	var TablePb = exports.TablePb = builder.build('TablePb');
+	var PlayerPb = exports.PlayerPb = builder.build('PlayerPb');
+	var MessageType = exports.MessageType = builder.lookup('Message.Type').object;
+	var ActionType = exports.ActionType = builder.lookup('ActionReq.Action').object;
+
+	var JoinTableReq = exports.JoinTableReq = builder.build('JoinTableReq');
+	var JoinTableRes = exports.JoinTableRes = builder.build('JoinTableRes');
+
+	var LeaveTableReq = exports.LeaveTableReq = builder.build('LeaveTableReq');
+	var LeaveTableRes = exports.LeaveTableRes = builder.build('LeaveTableRes');
+
+	var ListTableReq = exports.ListTableReq = builder.build('ListTableReq');
+	var ListTableRes = exports.ListTableRes = builder.build('ListTableRes');
+
+	var LeaveGameReq = exports.LeaveGameReq = builder.build('LeaveGameReq');
+	var LeaveGameRes = exports.LeaveGameRes = builder.build('LeaveGameRes');
+
+	var ActionReq = exports.ActionReq = builder.build('ActionReq');
+	var ActionRes = exports.ActionRes = builder.build('ActionRes');
+
+	var onMessage = exports.onMessage = function onMessage(data, dispatch) {
+	  var msg = Message.decode(data);
+	  var res;
+	  switch (msg.type) {
+	    case MessageType.JOIN_TABLE_RES:
+	      console.log('JOIN_TABLE_RES');
+	      res = JoinTableRes.decode(msg.data);
+	      return dispatch(res);
+	    case MessageType.LEAVE_TABLE_RES:
+	      console.log('LEAVE_TABLE_RES');
+	      res = LeaveTableRes.decode(msg.data);
+	      return dispatch(res);
+	    case MessageType.LIST_TABLE_RES:
+	      console.log('LIST_TABLE_RES');
+	      res = ListTableRes.decode(msg.data);
+	      return dispatch(res);
+	    case MessageType.LEAVE_GAME_RES:
+	      console.log('LEAVE_GAME_RES');
+	      res = LeaveGameRes.decode(msg.data);
+	      return dispatch(res);
+	    case MessageType.ACTION_RES:
+	      console.log('ACTION_RES');
+	      res = ActionRes.decode(msg.data);
+	      return dispatch(res);
+	    default:
+	      return dispatch({ type: 'unknown protocol' });
+	  }
+	};
 
 /***/ },
 /* 580 */
@@ -52819,13 +52872,15 @@
 
 /***/ },
 /* 591 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+
+	var _ = __webpack_require__(579);
 
 	var ws = {
 	  sock: null,
@@ -52849,6 +52904,11 @@
 	        console.log('closed');
 	      };
 	    });
+	  },
+	  registerProtocols: function registerProtocols(dispatch) {
+	    ws.sock.onmessage = function (evt) {
+	      (0, _.onMessage)(evt.data, dispatch);
+	    };
 	  },
 	  send: function send(data) {
 	    ws.sock.send(data);

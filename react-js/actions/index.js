@@ -56,5 +56,8 @@ export const login = (username, password) => {
     .then(() => {
       dispatch(wsConnected())
     })
+    .then(() => {
+      ws.registerProtocols(dispatch)
+    })
   }
 }

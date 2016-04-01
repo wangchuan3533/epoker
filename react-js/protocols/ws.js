@@ -1,5 +1,5 @@
-
-const ws = {
+import {onMessage} from '.'
+let ws = {
   sock: null,
   connect: (url) => {
     return new Promise((resolve, reject) => {
@@ -21,6 +21,11 @@ const ws = {
         console.log('closed')
       }
     })
+  },
+  registerProtocols: (dispatch) => {
+    ws.sock.onmessage = (evt) => {
+      onMessage(evt.data, dispatch)
+    }
   },
   send: (data) => {
     ws.sock.send(data)
