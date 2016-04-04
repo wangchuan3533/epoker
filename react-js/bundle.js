@@ -29521,15 +29521,17 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.login = exports.WS_CONNECTED = exports.LOGIN_FAILED = exports.LOGIN_SUCCESS = exports.LOGIN_STARTED = undefined;
+	exports.login = exports.PROTOCOL_RECEIVED = exports.WS_CONNECTED = exports.LOGIN_FAILED = exports.LOGIN_SUCCESS = exports.LOGIN_STARTED = undefined;
 
 	var _isomorphicFetch = __webpack_require__(473);
 
 	var _isomorphicFetch2 = _interopRequireDefault(_isomorphicFetch);
 
-	var _ws = __webpack_require__(591);
+	var _ws = __webpack_require__(592);
 
 	var _ws2 = _interopRequireDefault(_ws);
+
+	var _protocols = __webpack_require__(579);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -29562,6 +29564,14 @@
 	  };
 	};
 
+	var PROTOCOL_RECEIVED = exports.PROTOCOL_RECEIVED = 'PROTOCOL_RECEIVED';
+	var protocolReceived = function protocolReceived(data) {
+	  return {
+	    type: PROTOCOL_RECEIVED,
+	    data: data
+	  };
+	};
+
 	var login = exports.login = function login(username, password) {
 	  return function (dispatch) {
 	    dispatch(loginStarted());
@@ -29581,11 +29591,16 @@
 	      dispatch(loginSuccess());
 	      return data.token;
 	    }).then(function (token) {
-	      _ws2.default.connect('ws://127.0.0.1:8080/ws/' + token);
-	    }).then(function () {
-	      dispatch(wsConnected());
-	    }).then(function () {
-	      _ws2.default.registerProtocols(dispatch);
+	      _ws2.default.connect('ws://127.0.0.1:8080/ws/' + token).then(function () {
+	        dispatch(wsConnected());
+	      }).then(function () {
+	        _ws2.default.onMessage(function (data) {
+	          dispatch(protocolReceived(data));
+	        });
+	        var req = new _protocols.ListTableReq();
+	        var msg = new _protocols.Message(_protocols.MessageType.LIST_TABLE_REQ, req.toArrayBuffer());
+	        _ws2.default.send(msg.toArrayBuffer());
+	      });
 	    });
 	  };
 	};
@@ -52871,17 +52886,15 @@
 	module.exports = keyOf;
 
 /***/ },
-/* 591 */
-/***/ function(module, exports, __webpack_require__) {
+/* 591 */,
+/* 592 */
+/***/ function(module, exports) {
 
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-
-	var _ = __webpack_require__(579);
-
 	var ws = {
 	  sock: null,
 	  connect: function connect(url) {
@@ -52905,9 +52918,9 @@
 	      };
 	    });
 	  },
-	  registerProtocols: function registerProtocols(dispatch) {
+	  onMessage: function onMessage(cb) {
 	    ws.sock.onmessage = function (evt) {
-	      (0, _.onMessage)(evt.data, dispatch);
+	      cb(evt.data);
 	    };
 	  },
 	  send: function send(data) {

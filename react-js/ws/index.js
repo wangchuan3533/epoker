@@ -1,9 +1,8 @@
-import {onMessage} from '.'
-let ws = {
+const ws = {
   sock: null,
   connect: (url) => {
     return new Promise((resolve, reject) => {
-      var sock = new WebSocket(url)
+      const sock = new WebSocket(url)
       sock.binaryType = 'arraybuffer'
       sock.onopen = () => {
         console.log('connected')
@@ -22,9 +21,9 @@ let ws = {
       }
     })
   },
-  registerProtocols: (dispatch) => {
+  onMessage: (cb) => {
     ws.sock.onmessage = (evt) => {
-      onMessage(evt.data, dispatch)
+      cb(evt.data)
     }
   },
   send: (data) => {
