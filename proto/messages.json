@@ -6,7 +6,7 @@
             "fields": [
                 {
                     "rule": "required",
-                    "type": "Type",
+                    "type": "MessageType",
                     "name": "type",
                     "id": 1
                 },
@@ -15,53 +15,6 @@
                     "type": "bytes",
                     "name": "data",
                     "id": 2
-                }
-            ],
-            "enums": [
-                {
-                    "name": "Type",
-                    "values": [
-                        {
-                            "name": "JOIN_TABLE_REQ",
-                            "id": 1
-                        },
-                        {
-                            "name": "JOIN_TABLE_RES",
-                            "id": 2
-                        },
-                        {
-                            "name": "LEAVE_TABLE_REQ",
-                            "id": 3
-                        },
-                        {
-                            "name": "LEAVE_TABLE_RES",
-                            "id": 4
-                        },
-                        {
-                            "name": "LIST_TABLE_REQ",
-                            "id": 5
-                        },
-                        {
-                            "name": "LIST_TABLE_RES",
-                            "id": 6
-                        },
-                        {
-                            "name": "LEAVE_GAME_REQ",
-                            "id": 7
-                        },
-                        {
-                            "name": "LEAVE_GAME_RES",
-                            "id": 8
-                        },
-                        {
-                            "name": "ACTION_REQ",
-                            "id": 9
-                        },
-                        {
-                            "name": "ACTION_RES",
-                            "id": 10
-                        }
-                    ]
                 }
             ]
         },
@@ -152,7 +105,7 @@
             "fields": [
                 {
                     "rule": "required",
-                    "type": "Action",
+                    "type": "ActionType",
                     "name": "action",
                     "id": 1
                 },
@@ -161,21 +114,6 @@
                     "type": "uint32",
                     "name": "amount",
                     "id": 2
-                }
-            ],
-            "enums": [
-                {
-                    "name": "Action",
-                    "values": [
-                        {
-                            "name": "ACTION_RAISE",
-                            "id": 1
-                        },
-                        {
-                            "name": "ACTION_FOLD",
-                            "id": 2
-                        }
-                    ]
                 }
             ]
         },
@@ -232,6 +170,66 @@
                     "rule": "repeated",
                     "type": "PlayerPb",
                     "name": "players",
+                    "id": 2
+                }
+            ]
+        }
+    ],
+    "enums": [
+        {
+            "name": "MessageType",
+            "values": [
+                {
+                    "name": "JOIN_TABLE_REQ",
+                    "id": 1
+                },
+                {
+                    "name": "JOIN_TABLE_RES",
+                    "id": 2
+                },
+                {
+                    "name": "LEAVE_TABLE_REQ",
+                    "id": 3
+                },
+                {
+                    "name": "LEAVE_TABLE_RES",
+                    "id": 4
+                },
+                {
+                    "name": "LIST_TABLE_REQ",
+                    "id": 5
+                },
+                {
+                    "name": "LIST_TABLE_RES",
+                    "id": 6
+                },
+                {
+                    "name": "LEAVE_GAME_REQ",
+                    "id": 7
+                },
+                {
+                    "name": "LEAVE_GAME_RES",
+                    "id": 8
+                },
+                {
+                    "name": "ACTION_REQ",
+                    "id": 9
+                },
+                {
+                    "name": "ACTION_RES",
+                    "id": 10
+                }
+            ]
+        },
+        {
+            "name": "ActionType",
+            "values": [
+                {
+                    "name": "ACTION_RAISE",
+                    "id": 1
+                },
+                {
+                    "name": "ACTION_FOLD",
                     "id": 2
                 }
             ]

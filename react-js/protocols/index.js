@@ -1,59 +1,35 @@
 import protobuf from 'protobufjs'
+import camelcase from 'uppercamelcase'
+
 const builder = protobuf.loadJsonFile('/proto/messages.json')
+const Message = builder.build('Message')
+const MessageType = builder.build('MessageType')
+const ActionType = builder.build('ActionType')
+const PlayerPb = builder.build('PlayerPb')
+const TablePb = builder.build('TablePb')
 
-export const Message = builder.build('Message')
-export const TablePb = builder.build('TablePb')
-export const PlayerPb = builder.build('PlayerPb')
-export const MessageType = builder.lookup('Message.Type').object
-export const ActionType = builder.lookup('ActionReq.Action').object
-
-export const JoinTableReq = builder.build('JoinTableReq')
-export const JoinTableRes = builder.build('JoinTableRes')
-
-export const LeaveTableReq = builder.build('LeaveTableReq')
-export const LeaveTableRes = builder.build('LeaveTableRes')
-
-export const ListTableReq = builder.build('ListTableReq')
-export const ListTableRes = builder.build('ListTableRes')
-
-export const LeaveGameReq = builder.build('LeaveGameReq')
-export const LeaveGameRes = builder.build('LeaveGameRes')
-
-export const ActionReq = builder.build('ActionReq')
-export const ActionRes = builder.build('ActionRes')
-
-window.MessageType = MessageType
-
-export const decode = (data) => {
-  const msg = Message.decode(data)
-
+const Exports = {
+  Message,
+  MessageType,
+  ActionType,
+  PlayerPb,
+  TablePb
 }
 
-export const onMessage = (data, dispatch) => {
-  const msg = Message.decode(data)
-  var res
-  switch(msg.type) {
-    case MessageType.JOIN_TABLE_RES:
-      console.log('JOIN_TABLE_RES')
-      res = JoinTableRes.decode(msg.data)
-      return dispatch(res)
-    case MessageType.LEAVE_TABLE_RES:
-      console.log('LEAVE_TABLE_RES')
-      res = LeaveTableRes.decode(msg.data)
-      return dispatch(res)
-    case MessageType.LIST_TABLE_RES:
-      console.log('LIST_TABLE_RES')
-      res = ListTableRes.decode(msg.data)
-      return dispatch(res)
-    case MessageType.LEAVE_GAME_RES:
-      console.log('LEAVE_GAME_RES')
-      res = LeaveGameRes.decode(msg.data)
-      return dispatch(res)
-    case MessageType.ACTION_RES:
-      console.log('ACTION_RES')
-      res = ActionRes.decode(msg.data)
-      return dispatch(res)
-    default:
-      return dispatch({type: 'unknown protocol'})
-  }
+const Protocols = {}
+
+for (var messageType in MessageType) {
+  const Protocol = builder.build(camelcase(messageType))
+  Protocols[MessageType[messageType]] = Protocol
+  Exports[camelcase(messageType)] = Protocol
 }
+
+Exports.decode = (data) => {
+  const msg = Message.decode(data)
+  const Protocol = Protocols[msg.type]
+  const subMsg = Protocol.decode(msg.data)
+  subMsg.type = msg.type
+  return subMsg
+}
+
+export default Exports

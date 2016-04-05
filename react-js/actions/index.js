@@ -1,6 +1,7 @@
 import fetch from 'isomorphic-fetch'
 import transport from '../transport'
-import {Message, MessageType, JoinTableReq} from '../protocols'
+import Protocols from '../protocols'
+const {Message, MessageType, JoinTableReq} = Protocols
 
 export const LOGIN_STARTED = 'LOGIN_STARTED'
 const loginStarted = () => {

@@ -4,7 +4,8 @@
 -compile(export_all).
 
 init() ->
-  mnesia:create_table(user, [{attributes, record_info(fields, user)}, {disc_copies, [node()]}]).
+  mnesia:create_table(user, [{attributes, record_info(fields, user)}, {disc_copies, [node()]}]),
+  mnesia:transaction(fun() -> mnesia:write(#user{id = <<"test">>, password = <<"test">>, name = <<"test">>, chips = 100000}) end).
   
 get(Uid) ->
   case mnesia:transaction(fun() -> mnesia:read(user, Uid, read) end) of

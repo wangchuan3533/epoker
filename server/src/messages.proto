@@ -1,5 +1,4 @@
-message Message {
-  enum Type {
+enum MessageType {
     JOIN_TABLE_REQ = 1;
     JOIN_TABLE_RES = 2;
     
@@ -14,9 +13,10 @@ message Message {
     
     ACTION_REQ = 9;
     ACTION_RES = 10;
-  }
-  
-  required Type type = 1;
+}
+
+message Message {
+  required MessageType type = 1;
   required bytes data = 2;
 }
 
@@ -51,12 +51,13 @@ message LeaveGameRes {
   required uint32 errno = 1;
 }
 
-message ActionReq {
-  enum Action {
+enum ActionType {
     ACTION_RAISE = 1;
     ACTION_FOLD = 2;
-  }
-  required Action action = 1;
+}
+
+message ActionReq {
+  required ActionType action = 1;
   required uint32 amount = 2;
 }
 
