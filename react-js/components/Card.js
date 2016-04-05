@@ -5,7 +5,7 @@ const colors = styles.Colors
 
 const Card = ({card}) => {
   let suit, color, rank, style
-  
+
   switch (Math.floor(card / 13)) {
     case 0:
       suit = '♥'
@@ -24,7 +24,7 @@ const Card = ({card}) => {
       color = colors.black
       break
   }
-  rank = card % 13
+  rank = Math.floor(card % 13)
   if (rank < 9) {
     rank = '' + (rank + 2)
   } else if (rank == 9) {
@@ -36,7 +36,7 @@ const Card = ({card}) => {
   } else if (rank == 12) {
     rank = 'A'
   }
-  
+
   style = {
     width: 40,
     height: 56,

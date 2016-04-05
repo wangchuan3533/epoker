@@ -8,16 +8,9 @@ const App = () => (
     flexDirection: 'row'
   }}>
     <LoginDialog />
-    <Card card={1} />
-    <Card card={10} />
-    <Card card={15} />
-    <Card card={20} />
-    <Card card={25} />
-    <Card card={30} />
-    <Card card={35} />
-    <Card card={40} />
-    <Card card={45} />
-    <Card card={50} />
+    {[1, 10, 15, 20, 25, 30, 35.40, 45, 50].map((code) =>
+      <Card key={code} card={code} />
+    )}
     <Player status="folded" chips="1000" />
   </div>
 )

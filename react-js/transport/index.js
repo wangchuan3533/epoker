@@ -1,4 +1,4 @@
-const ws = {
+const transport = {
   sock: null,
   connect: (url) => {
     return new Promise((resolve, reject) => {
@@ -6,7 +6,7 @@ const ws = {
       sock.binaryType = 'arraybuffer'
       sock.onopen = () => {
         console.log('connected')
-        ws.sock = sock
+        transport.sock = sock
         resolve()
       }
       sock.onerror = () => {
@@ -22,16 +22,16 @@ const ws = {
     })
   },
   onMessage: (cb) => {
-    ws.sock.onmessage = (evt) => {
+    transport.sock.onmessage = (evt) => {
       cb(evt.data)
     }
   },
   send: (data) => {
-    ws.sock.send(data)
+    transport.sock.send(data)
   },
   close: () => {
-    ws.sock.close()
+    transport.sock.close()
   }
 }
 
-export default ws
+export default transport

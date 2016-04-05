@@ -22,6 +22,13 @@ export const LeaveGameRes = builder.build('LeaveGameRes')
 export const ActionReq = builder.build('ActionReq')
 export const ActionRes = builder.build('ActionRes')
 
+window.MessageType = MessageType
+
+export const decode = (data) => {
+  const msg = Message.decode(data)
+
+}
+
 export const onMessage = (data, dispatch) => {
   const msg = Message.decode(data)
   var res
