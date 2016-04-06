@@ -1,6 +1,6 @@
 import {LOGIN_STARTED, LOGIN_SUCCESS, LOGIN_FAILED} from '../actions'
 
-const login = (state = {authorized: false}, action) => {
+const auth = (state = {authorized: false}, action) => {
   switch (action.type) {
     case LOGIN_STARTED:
       console.log('login started')
@@ -18,4 +18,4 @@ const login = (state = {authorized: false}, action) => {
   }
 }
 
-export default login
+export default auth

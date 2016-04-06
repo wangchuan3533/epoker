@@ -1,12 +1,12 @@
 import { combineReducers } from 'redux'
-import login from './login'
+import auth from './auth'
 import connection from './connection'
-import protocol from './protocol'
+import game from './game'
 
 const reducers = combineReducers({
-  login,
+  auth,
   connection,
-  protocol
+  game
 })
 
 export default reducers

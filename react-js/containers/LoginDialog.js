@@ -5,7 +5,7 @@ import LoginForm from '../components/LoginForm'
 
 const mapStateToProps = (state) => {
   return {
-    open: !state.login.authorized,
+    open: !state.auth.authorized,
   }
 }
 
