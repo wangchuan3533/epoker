@@ -4,8 +4,7 @@
 -compile(export_all).
 
 init() ->
-  mnesia:create_table(user, [{attributes, record_info(fields, user)}, {disc_copies, [node()]}]),
-  mnesia:transaction(fun() -> mnesia:write(#user{id = <<"test">>, password = <<"test">>, name = <<"test">>, chips = 100000}) end).
+  mnesia:create_table(user, [{attributes, record_info(fields, user)}, {disc_copies, [node()]}]).
   
 get(Uid) ->
   case mnesia:transaction(fun() -> mnesia:read(user, Uid, read) end) of
@@ -22,6 +21,11 @@ test() ->
   {atomic, [User]} = test_read(),
   ok = io:format("User 1 is ~p~n", [User]),
   {atomic, ok} = test_clear().
+create_test_users() ->
+  mnesia:transaction(fun() -> mnesia:write(#user{id = <<"t1">>, password = <<"t1">>, name = <<"t1">>, chips = 100000}) end),
+  mnesia:transaction(fun() -> mnesia:write(#user{id = <<"t2">>, password = <<"t2">>, name = <<"t2">>, chips = 100000}) end),
+  mnesia:transaction(fun() -> mnesia:write(#user{id = <<"t3">>, password = <<"t3">>, name = <<"t3">>, chips = 100000}) end),
+  mnesia:transaction(fun() -> mnesia:write(#user{id = <<"t4">>, password = <<"t4">>, name = <<"t4">>, chips = 100000}) end).
   
 test_write() ->
   mnesia:transaction(fun() -> mnesia:write(#user{id = 1, password = 1, name = user1, chips = 100000}) end),

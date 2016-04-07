@@ -57,6 +57,7 @@ handle_pb_message(Player, Msg) ->
     #message{type = 'JOIN_TABLE_REQ', data = Data} ->
       #jointablereq{table_id = TableId} = messages_pb:decode_jointablereq(Data),
       {ok, {TableId1, Players}} = Player:call(#c2s_join_table{table_id = TableId}),
+      ok = io:format("~p~n", [Players]),
       PlayersPb = [#playerpb{id = 0, name = "hello", chips = 100, head_img = "img"} || _ <- Players],
       TablePb = #tablepb{id = TableId1, players = PlayersPb},
       Res = #jointableres{errno = 0, table = TablePb},
