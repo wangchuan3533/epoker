@@ -27,6 +27,7 @@
   buyin = 1000
 }).
 
+
 %% API.
 new(Opts) ->
   {ok, Pid} = gen_fsm:start_link(?MODULE, [Opts], []),
@@ -74,16 +75,21 @@ handle_event(_Event, StateName, StateData) ->
 	{next_state, StateName, StateData}.
 
 %% add player
-handle_sync_event(#p2t_join{player = Player}, _From, StateName, StateData = #state{id = Id, lobby = Lobby, playing_players = PlayingPlayers, waiting_players = WaitingPlayers}) ->
-  if length(PlayingPlayers) + length(WaitingPlayers) >= ?MAX_PLAYERS ->
-    {reply, full, StateName, StateData};
+handle_sync_event(#p2t_join{player = Player, id = PlayerId, name = PlayerName, chips = PlayerChips}, _From, StateName, StateData = #state{id = Id, lobby = Lobby, playing_players = PlayingPlayers, waiting_players = WaitingPlayers, buyin = BuyIn}) ->
+  if PlayerChips < BuyIn ->
+    {reply, not_enough_chips, StateName, StateData};
   true ->
-    ok = if length(PlayingPlayers) + length(WaitingPlayers) == ?MAX_PLAYERS - 1 ->
-      Lobby:call(#t2l_table_full{table_id = Id});
-    true -> ok
-    end,
-    WaitingPlayers1 = [Player | WaitingPlayers],
-    {reply, {ok, {Id, lists:append(PlayingPlayers, WaitingPlayers1)}}, StateName, StateData#state{waiting_players = WaitingPlayers1}}
+    if length(PlayingPlayers) + length(WaitingPlayers) >= ?MAX_PLAYERS ->
+      {reply, full, StateName, StateData};
+    true ->
+      ok = if length(PlayingPlayers) + length(WaitingPlayers) == ?MAX_PLAYERS - 1 ->
+        Lobby:call(#t2l_table_full{table_id = Id});
+      true -> ok
+      end,
+      PlayerInTable = #player_in_table{player = Player, id = PlayerId, name = PlayerName, chips = BuyIn},
+      WaitingPlayers1 = [PlayerInTable | WaitingPlayers],
+      {reply, {ok, {Id, lists:append(PlayingPlayers, WaitingPlayers1), BuyIn}}, StateName, StateData#state{waiting_players = WaitingPlayers1}}
+    end
   end;
 
 %% del player
@@ -94,7 +100,17 @@ handle_sync_event(#p2t_leave{player = Player}, _From, StateName, StateData = #st
     true ->
       ok
   end,
-  {reply, ok, StateName, StateData#state{playing_players = lists:delete(Player, PlayingPlayers), waiting_players = lists:delete(Player, WaitingPlayers)}};
+  case lists:keytake(Player, #player_in_table.player, PlayingPlayers) of
+    {value, #player_in_table{player = Player, id = _Id, name = _Name, chips = Chips}, PlayingPlayers1} ->
+      {reply, {ok, Chips}, StateName, StateData#state{playing_players = PlayingPlayers1}};
+    false ->
+      case lists:keytake(Player, #player_in_table.player, WaitingPlayers) of
+        {value, #player_in_table{player = Player, id = _Id, name = _Name, chips = Chips}, WaitingPlayers1} ->
+          {reply, {ok, Chips}, StateName, StateData#state{waiting_players = WaitingPlayers1}};
+        false ->
+          {reply, not_in_table, StateName, StateData}
+      end
+  end;
 
 %% dump
 handle_sync_event(dump, _From, StateName, StateData) ->

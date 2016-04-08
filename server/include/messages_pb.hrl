@@ -79,13 +79,26 @@
 }).
 -endif.
 
+-ifndef(OTHERJOINTABLENTF_PB_H).
+-define(OTHERJOINTABLENTF_PB_H, true).
+-record(otherjointablentf, {
+    player = erlang:error({required, player})
+}).
+-endif.
+
+-ifndef(OTHERLEAVETABLENTF_PB_H).
+-define(OTHERLEAVETABLENTF_PB_H, true).
+-record(otherleavetablentf, {
+    id = erlang:error({required, id})
+}).
+-endif.
+
 -ifndef(PLAYERPB_PB_H).
 -define(PLAYERPB_PB_H, true).
 -record(playerpb, {
     id = erlang:error({required, id}),
     name = erlang:error({required, name}),
-    chips = erlang:error({required, chips}),
-    head_img
+    chips = erlang:error({required, chips})
 }).
 -endif.
 

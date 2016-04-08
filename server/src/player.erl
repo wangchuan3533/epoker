@@ -48,11 +48,15 @@ init([{PlayerDb = #player_db{id = Id, name = Name, chips = Chips}, Lobby}]) ->
 in_lobby(_Event, StateData) ->
 	{next_state, in_lobby, StateData}.
 
-in_lobby(#c2s_join_table{table_id = Tid}, _From, StateData = #state{lobby = Lobby}) ->
+in_lobby(#c2s_join_table{table_id = Tid}, _From, StateData = #state{lobby = Lobby, id = Id, name = Name, chips = Chips}) ->
   {ok, {_TableId, Table}} = Lobby:call(#p2l_get_table{table_id = Tid}),
-  Ret = Table:call(#p2t_join{player = this()}),
-  NewStateData = StateData#state{table = Table},
-	{reply, Ret, in_table, NewStateData};
+  case Table:call(#p2t_join{player = this(), id = Id, name = Name, chips = Chips}) of
+    {ok, Ret = {_TableId, _Players, BuyIn}} ->
+      NewStateData = StateData#state{table = Table, chips = Chips - BuyIn},
+	    {reply, {ok, Ret}, in_table, NewStateData};
+    Other ->
+      {reply, Other, StateData}
+  end;
 
 in_lobby(Event, From, StateData) ->
   handle_sync_event(Event, From, in_lobby, StateData).
@@ -105,18 +109,20 @@ handle_info(_Info, StateName, StateData) ->
 
 terminate(Reason, StateName, #state{table = Table, game = Game, player_db = PlayerDb, chips = Chips}) ->
   io:format("player ~p stoped for reason ~p~n", [this(), Reason]),
-  case StateName of
+  LeftChips = case StateName of
     in_game ->
       ok = Game:call(#p2g_action{player = this(), action = ?ACTION_FOLD}),
-      ok = Table:call(#p2t_leave{player = this()});
+      {ok, Chips1} = Table:call(#p2t_leave{player = this()}),
+      Chips1;
     in_table ->
-      ok = Table:call(#p2t_leave{player = this()});
+      {ok, Chips1} = Table:call(#p2t_leave{player = this()}),
+      Chips1;
     in_lobby ->
-      ok
+      0
   end,
 
   %% save back to db
-  ok = storage:set(PlayerDb#player_db{chips = Chips}).
+  ok = storage:set(PlayerDb#player_db{chips = Chips + LeftChips}).
 
 code_change(_OldVsn, StateName, StateData, _Extra) ->
 	{ok, StateName, StateData}.

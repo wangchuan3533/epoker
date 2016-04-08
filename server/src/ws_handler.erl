@@ -19,9 +19,9 @@ init(_, _, _) ->
 websocket_init(_Type, Req, _Opts) ->
   {Token, Req2} = cowboy_req:binding(token, Req),
   case storage:get(Token) of
-    {ok, User} ->
+    {ok, PlayerDb} ->
       Req3 = cowboy_req:compact(Req2),
-      {ok, Req3, #state{player = player:new({User, lobby})}};
+      {ok, Req3, #state{player = player:new({PlayerDb, lobby})}};
     {error, Reason} ->
       ok = io:format("auth failed reason ~p~n", [Reason]),
       {shutdown, Req2}
@@ -55,9 +55,9 @@ handle_pb_message(Player, Msg) ->
   case Msg of
     #message{type = 'JOIN_TABLE_REQ', data = Data} ->
       #jointablereq{table_id = TableId} = messages_pb:decode_jointablereq(Data),
-      {ok, {TableId1, Players}} = Player:call(#c2s_join_table{table_id = TableId}),
+      {ok, {TableId1, Players, _BuyIn}} = Player:call(#c2s_join_table{table_id = TableId}),
       ok = io:format("~p~n", [Players]),
-      PlayersPb = [#playerpb{id = 0, name = "hello", chips = 100, head_img = "img"} || _ <- Players],
+      PlayersPb = [#playerpb{id = Id, name = Name, chips = Chips} || #player_in_table{id = Id, name = Name, chips = Chips} <- Players],
       TablePb = #tablepb{id = TableId1, players = PlayersPb},
       Res = #jointableres{errno = 0, table = TablePb},
       #message{type = 'JOIN_TABLE_RES', data = messages_pb:encode(Res)};

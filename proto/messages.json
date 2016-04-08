@@ -133,7 +133,7 @@
             "fields": [
                 {
                     "rule": "required",
-                    "type": "uint32",
+                    "type": "string",
                     "name": "id",
                     "id": 1
                 },
@@ -148,12 +148,6 @@
                     "type": "uint32",
                     "name": "chips",
                     "id": 3
-                },
-                {
-                    "rule": "optional",
-                    "type": "string",
-                    "name": "head_img",
-                    "id": 4
                 }
             ]
         },

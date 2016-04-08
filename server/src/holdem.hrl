@@ -15,7 +15,7 @@
 -record(player, {pid}).
 -record(lobby, {pid}).
 -record(player_db, {id, password, name, chips = ?INIT_CHIPS}).
-
+-record(player_in_table, {player, id, name, chips}).
 
 %% client to server protocols
 -record(c2s_join_table, {table_id = -1}).
@@ -27,7 +27,7 @@
 %% protocols
 
 %% player to table protocols
--record(p2t_join, {player}).
+-record(p2t_join, {player, id, name, chips}).
 -record(p2t_leave, {player}).
 
 %% player to game protocols

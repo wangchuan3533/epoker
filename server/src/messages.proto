@@ -13,6 +13,9 @@ enum MessageType {
     
     ACTION_REQ = 9;
     ACTION_RES = 10;
+    
+    OTHER_JOIN_TABLE_NTF = 11;
+    OTHER_LEAVE_TABLE_NTF = 12;
 }
 
 message Message {
@@ -65,11 +68,18 @@ message ActionRes {
   required uint32 errno = 1;
 }
 
+message OtherJoinTableNtf {
+  required PlayerPb player = 1;
+}
+
+message OtherLeaveTableNtf {
+  required string id = 1;
+}
+
 message PlayerPb {
-  required uint32 id = 1;
+  required string id = 1;
   required string name = 2;
   required uint32 chips = 3;
-  optional string head_img = 4;
 }
 
 message TablePb {

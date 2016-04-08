@@ -70,7 +70,7 @@
 
 	var _App2 = _interopRequireDefault(_App);
 
-	var _reducers = __webpack_require__(585);
+	var _reducers = __webpack_require__(589);
 
 	var _reducers2 = _interopRequireDefault(_reducers);
 
@@ -78,7 +78,7 @@
 
 	var _protocols2 = _interopRequireDefault(_protocols);
 
-	var _reactTapEventPlugin = __webpack_require__(589);
+	var _reactTapEventPlugin = __webpack_require__(593);
 
 	var _reactTapEventPlugin2 = _interopRequireDefault(_reactTapEventPlugin);
 
@@ -29030,7 +29030,7 @@
 
 	var _LoginDialog2 = _interopRequireDefault(_LoginDialog);
 
-	var _Table = __webpack_require__(597);
+	var _Table = __webpack_require__(579);
 
 	var _Table2 = _interopRequireDefault(_Table);
 
@@ -51988,13 +51988,44 @@
 	  value: true
 	});
 
+	var _react = __webpack_require__(291);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _reactRedux = __webpack_require__(448);
+
+	var _PlayerList = __webpack_require__(580);
+
+	var _PlayerList2 = _interopRequireDefault(_PlayerList);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var mapStateToProps = function mapStateToProps(state) {
+	  console.log(state.game.players);
+	  return {
+	    players: state.game.players || []
+	  };
+	};
+
+	exports.default = (0, _reactRedux.connect)(mapStateToProps)(_PlayerList2.default);
+
+/***/ },
+/* 580 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 	var _react = __webpack_require__(291);
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _Player = __webpack_require__(594);
+	var _Player = __webpack_require__(581);
 
 	var _Player2 = _interopRequireDefault(_Player);
 
@@ -52015,114 +52046,6 @@
 	exports.default = PlayerList;
 
 /***/ },
-/* 580 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _react = __webpack_require__(291);
-
-	var _react2 = _interopRequireDefault(_react);
-
-	var _styles = __webpack_require__(581);
-
-	var _styles2 = _interopRequireDefault(_styles);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var colors = _styles2.default.Colors;
-
-	var Card = function Card(_ref) {
-	  var card = _ref.card;
-
-	  var suit = void 0,
-	      color = void 0,
-	      rank = void 0,
-	      style = void 0;
-
-	  switch (Math.floor(card / 13)) {
-	    case 0:
-	      suit = '♥';
-	      color = colors.red500;
-	      break;
-	    case 1:
-	      suit = '♠';
-	      color = colors.black;
-	      break;
-	    case 2:
-	      suit = '♦';
-	      color = colors.red500;
-	      break;
-	    case 3:
-	      suit = '♣';
-	      color = colors.black;
-	      break;
-	  }
-	  rank = Math.floor(card % 13);
-	  if (rank < 9) {
-	    rank = '' + (rank + 2);
-	  } else if (rank == 9) {
-	    rank = 'J';
-	  } else if (rank == 10) {
-	    rank = 'Q';
-	  } else if (rank == 11) {
-	    rank = 'K';
-	  } else if (rank == 12) {
-	    rank = 'A';
-	  }
-
-	  style = {
-	    width: 40,
-	    height: 56,
-	    position: 'relative',
-	    borderStyle: 'dotted',
-	    borderWidth: 1,
-	    margin: 4,
-	    color: color
-	  };
-	  return _react2.default.createElement(
-	    'div',
-	    { style: style },
-	    _react2.default.createElement(
-	      'div',
-	      { style: {
-	          width: '100%',
-	          position: 'absolute',
-	          top: 0,
-	          textAlign: 'left'
-	        } },
-	      suit
-	    ),
-	    _react2.default.createElement(
-	      'div',
-	      { style: {
-	          width: '100%',
-	          position: 'absolute',
-	          top: '37%',
-	          textAlign: 'center'
-	        } },
-	      rank
-	    ),
-	    _react2.default.createElement(
-	      'div',
-	      { style: {
-	          width: '100%',
-	          position: 'absolute',
-	          bottom: 0,
-	          textAlign: 'right'
-	        } },
-	      suit
-	    )
-	  );
-	};
-
-	exports.default = Card;
-
-/***/ },
 /* 581 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -52131,674 +52054,16 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.ZIndex = exports.getMuiTheme = exports.ThemeDecorator = exports.DarkRawTheme = exports.LightRawTheme = exports.lightBaseTheme = exports.Typography = exports.Transitions = exports.ThemeManager = exports.Spacing = exports.Colors = exports.AutoPrefix = undefined;
-
-	var _autoPrefix = __webpack_require__(562);
-
-	var _autoPrefix2 = _interopRequireDefault(_autoPrefix);
-
-	var _colors = __webpack_require__(504);
-
-	var Colors = _interopRequireWildcard(_colors);
-
-	var _spacing = __webpack_require__(505);
-
-	var _spacing2 = _interopRequireDefault(_spacing);
-
-	var _themeManager = __webpack_require__(582);
-
-	var _themeManager2 = _interopRequireDefault(_themeManager);
-
-	var _transitions = __webpack_require__(492);
-
-	var _transitions2 = _interopRequireDefault(_transitions);
-
-	var _typography = __webpack_require__(544);
-
-	var _typography2 = _interopRequireDefault(_typography);
-
-	var _lightBaseTheme = __webpack_require__(503);
-
-	var _lightBaseTheme2 = _interopRequireDefault(_lightBaseTheme);
-
-	var _darkBaseTheme = __webpack_require__(583);
-
-	var _darkBaseTheme2 = _interopRequireDefault(_darkBaseTheme);
-
-	var _themeDecorator = __webpack_require__(584);
-
-	var _themeDecorator2 = _interopRequireDefault(_themeDecorator);
-
-	var _getMuiTheme = __webpack_require__(494);
-
-	var _getMuiTheme2 = _interopRequireDefault(_getMuiTheme);
-
-	var _zIndex = __webpack_require__(506);
-
-	var _zIndex2 = _interopRequireDefault(_zIndex);
-
-	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var LightRawTheme = _lightBaseTheme2.default;
-	var DarkRawTheme = _darkBaseTheme2.default;
-
-	exports.AutoPrefix = _autoPrefix2.default;
-	exports.Colors = Colors;
-	exports.Spacing = _spacing2.default;
-	exports.ThemeManager = _themeManager2.default;
-	exports.Transitions = _transitions2.default;
-	exports.Typography = _typography2.default;
-	exports.lightBaseTheme = _lightBaseTheme2.default;
-	exports.LightRawTheme = LightRawTheme;
-	exports.DarkRawTheme = DarkRawTheme;
-	exports.ThemeDecorator = _themeDecorator2.default;
-	exports.getMuiTheme = _getMuiTheme2.default;
-	exports.ZIndex = _zIndex2.default;
-	exports.default = {
-	  AutoPrefix: _autoPrefix2.default,
-	  Colors: Colors,
-	  Spacing: _spacing2.default,
-	  ThemeManager: _themeManager2.default,
-	  Transitions: _transitions2.default,
-	  Typography: _typography2.default,
-	  lightBaseTheme: _lightBaseTheme2.default,
-	  LightRawTheme: LightRawTheme,
-	  darkBaseTheme: _darkBaseTheme2.default,
-	  DarkRawTheme: DarkRawTheme,
-	  ThemeDecorator: _themeDecorator2.default,
-	  getMuiTheme: _getMuiTheme2.default,
-	  ZIndex: _zIndex2.default
-	};
-
-/***/ },
-/* 582 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _reactAddonsUpdate = __webpack_require__(567);
-
-	var _reactAddonsUpdate2 = _interopRequireDefault(_reactAddonsUpdate);
-
-	var _lodash = __webpack_require__(495);
-
-	var _lodash2 = _interopRequireDefault(_lodash);
-
-	var _getMuiTheme2 = __webpack_require__(494);
-
-	var _getMuiTheme3 = _interopRequireDefault(_getMuiTheme2);
-
-	var _warning = __webpack_require__(502);
-
-	var _warning2 = _interopRequireDefault(_warning);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	exports.default = {
-	  getMuiTheme: function getMuiTheme(baseTheme, muiTheme) {
-	    process.env.NODE_ENV !== "production" ? (0, _warning2.default)(false, 'ThemeManager is deprecated. please import getMuiTheme' + ' directly from "material-ui/lib/styles/getMuiTheme"') : void 0;
-	    return (0, _getMuiTheme3.default)(baseTheme, muiTheme);
-	  },
-	  modifyRawThemeSpacing: function modifyRawThemeSpacing(muiTheme, spacing) {
-	    process.env.NODE_ENV !== "production" ? (0, _warning2.default)(false, 'modifyRawThemeSpacing is deprecated. please use getMuiTheme ' + ' to modify your theme directly. http://www.material-ui.com/#/customization/themes') : void 0;
-	    return (0, _getMuiTheme3.default)((0, _reactAddonsUpdate2.default)(muiTheme.baseTheme, { spacing: { $set: spacing } }));
-	  },
-	  modifyRawThemePalette: function modifyRawThemePalette(muiTheme, palette) {
-	    process.env.NODE_ENV !== "production" ? (0, _warning2.default)(false, 'modifyRawThemePalette is deprecated. please use getMuiTheme ' + ' to modify your theme directly. http://www.material-ui.com/#/customization/themes') : void 0;
-	    var newPalette = (0, _lodash2.default)(muiTheme.baseTheme.palette, palette);
-	    return (0, _getMuiTheme3.default)((0, _reactAddonsUpdate2.default)(muiTheme.baseTheme, { palette: { $set: newPalette } }));
-	  },
-	  modifyRawThemeFontFamily: function modifyRawThemeFontFamily(muiTheme, fontFamily) {
-	    process.env.NODE_ENV !== "production" ? (0, _warning2.default)(false, 'modifyRawThemeFontFamily is deprecated. please use getMuiTheme ' + ' to modify your theme directly. http://www.material-ui.com/#/customization/themes') : void 0;
-	    return (0, _getMuiTheme3.default)((0, _reactAddonsUpdate2.default)(muiTheme.baseTheme, { fontFamily: { $set: fontFamily } }));
-	  }
-	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(287)))
-
-/***/ },
-/* 583 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _colors = __webpack_require__(504);
-
-	var _colorManipulator = __webpack_require__(501);
-
-	var _colorManipulator2 = _interopRequireDefault(_colorManipulator);
-
-	var _spacing = __webpack_require__(505);
-
-	var _spacing2 = _interopRequireDefault(_spacing);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	exports.default = {
-	  spacing: _spacing2.default,
-	  fontFamily: 'Roboto, sans-serif',
-	  palette: {
-	    primary1Color: _colors.cyan700,
-	    primary2Color: _colors.cyan700,
-	    primary3Color: _colors.grey600,
-	    accent1Color: _colors.pinkA200,
-	    accent2Color: _colors.pinkA400,
-	    accent3Color: _colors.pinkA100,
-	    textColor: _colors.fullWhite,
-	    alternateTextColor: '#303030',
-	    canvasColor: '#303030',
-	    borderColor: _colorManipulator2.default.fade(_colors.fullWhite, 0.3),
-	    disabledColor: _colorManipulator2.default.fade(_colors.fullWhite, 0.3),
-	    pickerHeaderColor: _colorManipulator2.default.fade(_colors.fullWhite, 0.12),
-	    clockCircleColor: _colorManipulator2.default.fade(_colors.fullWhite, 0.12)
-	  }
-	};
-
-/***/ },
-/* 584 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
 
 	var _react = __webpack_require__(291);
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _warning = __webpack_require__(502);
-
-	var _warning2 = _interopRequireDefault(_warning);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	exports.default = function (customTheme) {
-	  process.env.NODE_ENV !== "production" ? (0, _warning2.default)(false, 'ThemeDecorator is deprecated, please use MuiThemeProvider instead.') : void 0;
-
-	  return function (Component) {
-	    return _react2.default.createClass({
-	      childContextTypes: {
-	        muiTheme: _react2.default.PropTypes.object
-	      },
-
-	      getChildContext: function getChildContext() {
-	        return {
-	          muiTheme: customTheme
-	        };
-	      },
-	      render: function render() {
-	        return _react2.default.createElement(Component, this.props);
-	      }
-	    });
-	  };
-	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(287)))
-
-/***/ },
-/* 585 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _redux = __webpack_require__(454);
-
-	var _auth = __webpack_require__(586);
-
-	var _auth2 = _interopRequireDefault(_auth);
-
-	var _connection = __webpack_require__(587);
-
-	var _connection2 = _interopRequireDefault(_connection);
-
-	var _game = __webpack_require__(588);
-
-	var _game2 = _interopRequireDefault(_game);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var reducers = (0, _redux.combineReducers)({
-	  auth: _auth2.default,
-	  connection: _connection2.default,
-	  game: _game2.default
-	});
-
-	exports.default = reducers;
-
-/***/ },
-/* 586 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-	var _actions = __webpack_require__(475);
-
-	var auth = function auth() {
-	  var state = arguments.length <= 0 || arguments[0] === undefined ? { authorized: false } : arguments[0];
-	  var action = arguments[1];
-
-	  switch (action.type) {
-	    case _actions.LOGIN_STARTED:
-	      console.log('login started');
-	      return state;
-	    case _actions.LOGIN_SUCCESS:
-	      return _extends({}, state, {
-	        authorized: true
-	      });
-	    case _actions.LOGIN_FAILED:
-	      console.log('login failed');
-	      return state;
-	    default:
-	      return state;
-	  }
-	};
-
-	exports.default = auth;
-
-/***/ },
-/* 587 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-	var connection = function connection() {
-	  var state = arguments.length <= 0 || arguments[0] === undefined ? { connected: false } : arguments[0];
-	  var action = arguments[1];
-
-	  switch (action.type) {
-	    case 'WS_CONNECTED':
-	      return _extends({}, state, {
-	        connected: true
-	      });
-	    default:
-	      return state;
-	  }
-	};
-
-	exports.default = connection;
-
-/***/ },
-/* 588 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-	var _actions = __webpack_require__(475);
-
-	var _protocols = __webpack_require__(477);
-
-	var _protocols2 = _interopRequireDefault(_protocols);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var MessageType = _protocols2.default.MessageType;
-	var decode = _protocols2.default.decode;
-	var JOIN_TABLE_RES = MessageType.JOIN_TABLE_RES;
-
-
-	var game = function game() {
-	  var state = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-	  var action = arguments[1];
-
-	  switch (action.type) {
-	    case _actions.PROTOCOL_RECEIVED:
-	      var msg = decode(action.data);
-	      switch (msg.type) {
-	        case JOIN_TABLE_RES:
-	          return _extends({}, state, {
-	            tableId: msg.table.id,
-	            players: msg.table.players
-	          });
-	      }
-	    default:
-	      return state;
-	  }
-	};
-	exports.default = game;
-
-/***/ },
-/* 589 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var defaultClickRejectionStrategy = __webpack_require__(590);
-
-	module.exports = function injectTapEventPlugin (strategyOverrides) {
-	  strategyOverrides = strategyOverrides || {}
-	  var shouldRejectClick = strategyOverrides.shouldRejectClick || defaultClickRejectionStrategy;
-
-	  __webpack_require__(320).injection.injectEventPluginsByName({
-	    "TapEventPlugin":       __webpack_require__(591)(shouldRejectClick)
-	  });
-	};
-
-
-/***/ },
-/* 590 */
-/***/ function(module, exports) {
-
-	module.exports = function(lastTouchEvent, clickTimestamp) {
-	  if (lastTouchEvent && (clickTimestamp - lastTouchEvent) < 750) {
-	    return true;
-	  }
-	};
-
-
-/***/ },
-/* 591 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule TapEventPlugin
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	var EventConstants = __webpack_require__(319);
-	var EventPluginUtils = __webpack_require__(322);
-	var EventPropagators = __webpack_require__(362);
-	var SyntheticUIEvent = __webpack_require__(376);
-	var TouchEventUtils = __webpack_require__(592);
-	var ViewportMetrics = __webpack_require__(327);
-
-	var keyOf = __webpack_require__(593);
-	var topLevelTypes = EventConstants.topLevelTypes;
-
-	var isStartish = EventPluginUtils.isStartish;
-	var isEndish = EventPluginUtils.isEndish;
-
-	var isTouch = function(topLevelType) {
-	  var touchTypes = [
-	    topLevelTypes.topTouchCancel,
-	    topLevelTypes.topTouchEnd,
-	    topLevelTypes.topTouchStart,
-	    topLevelTypes.topTouchMove
-	  ];
-	  return touchTypes.indexOf(topLevelType) >= 0;
-	}
-
-	/**
-	 * Number of pixels that are tolerated in between a `touchStart` and `touchEnd`
-	 * in order to still be considered a 'tap' event.
-	 */
-	var tapMoveThreshold = 10;
-	var ignoreMouseThreshold = 750;
-	var startCoords = {x: null, y: null};
-	var lastTouchEvent = null;
-
-	var Axis = {
-	  x: {page: 'pageX', client: 'clientX', envScroll: 'currentPageScrollLeft'},
-	  y: {page: 'pageY', client: 'clientY', envScroll: 'currentPageScrollTop'}
-	};
-
-	function getAxisCoordOfEvent(axis, nativeEvent) {
-	  var singleTouch = TouchEventUtils.extractSingleTouch(nativeEvent);
-	  if (singleTouch) {
-	    return singleTouch[axis.page];
-	  }
-	  return axis.page in nativeEvent ?
-	    nativeEvent[axis.page] :
-	    nativeEvent[axis.client] + ViewportMetrics[axis.envScroll];
-	}
-
-	function getDistance(coords, nativeEvent) {
-	  var pageX = getAxisCoordOfEvent(Axis.x, nativeEvent);
-	  var pageY = getAxisCoordOfEvent(Axis.y, nativeEvent);
-	  return Math.pow(
-	    Math.pow(pageX - coords.x, 2) + Math.pow(pageY - coords.y, 2),
-	    0.5
-	  );
-	}
-
-	var touchEvents = [
-	  topLevelTypes.topTouchStart,
-	  topLevelTypes.topTouchCancel,
-	  topLevelTypes.topTouchEnd,
-	  topLevelTypes.topTouchMove,
-	];
-
-	var dependencies = [
-	  topLevelTypes.topMouseDown,
-	  topLevelTypes.topMouseMove,
-	  topLevelTypes.topMouseUp,
-	].concat(touchEvents);
-
-	var eventTypes = {
-	  touchTap: {
-	    phasedRegistrationNames: {
-	      bubbled: keyOf({onTouchTap: null}),
-	      captured: keyOf({onTouchTapCapture: null})
-	    },
-	    dependencies: dependencies
-	  }
-	};
-
-	var now = (function() {
-	  if (Date.now) {
-	    return Date.now;
-	  } else {
-	    // IE8 support: http://stackoverflow.com/questions/9430357/please-explain-why-and-how-new-date-works-as-workaround-for-date-now-in
-	    return function () {
-	      return +new Date;
-	    }
-	  }
-	})();
-
-	function createTapEventPlugin(shouldRejectClick) {
-	  return {
-
-	    tapMoveThreshold: tapMoveThreshold,
-
-	    ignoreMouseThreshold: ignoreMouseThreshold,
-
-	    eventTypes: eventTypes,
-
-	    /**
-	     * @param {string} topLevelType Record from `EventConstants`.
-	     * @param {DOMEventTarget} topLevelTarget The listening component root node.
-	     * @param {string} topLevelTargetID ID of `topLevelTarget`.
-	     * @param {object} nativeEvent Native browser event.
-	     * @return {*} An accumulation of synthetic events.
-	     * @see {EventPluginHub.extractEvents}
-	     */
-	    extractEvents: function(
-	        topLevelType,
-	        topLevelTarget,
-	        topLevelTargetID,
-	        nativeEvent,
-	        nativeEventTarget) {
-
-	      if (isTouch(topLevelType)) {
-	        lastTouchEvent = now();
-	      } else {
-	        if (shouldRejectClick(lastTouchEvent, now())) {
-	          return null;
-	        }
-	      }
-
-	      if (!isStartish(topLevelType) && !isEndish(topLevelType)) {
-	        return null;
-	      }
-	      var event = null;
-	      var distance = getDistance(startCoords, nativeEvent);
-	      if (isEndish(topLevelType) && distance < tapMoveThreshold) {
-	        event = SyntheticUIEvent.getPooled(
-	          eventTypes.touchTap,
-	          topLevelTargetID,
-	          nativeEvent,
-	          nativeEventTarget
-	        );
-	      }
-	      if (isStartish(topLevelType)) {
-	        startCoords.x = getAxisCoordOfEvent(Axis.x, nativeEvent);
-	        startCoords.y = getAxisCoordOfEvent(Axis.y, nativeEvent);
-	      } else if (isEndish(topLevelType)) {
-	        startCoords.x = 0;
-	        startCoords.y = 0;
-	      }
-	      EventPropagators.accumulateTwoPhaseDispatches(event);
-	      return event;
-	    }
-
-	  };
-	}
-
-	module.exports = createTapEventPlugin;
-
-
-/***/ },
-/* 592 */
-/***/ function(module, exports) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule TouchEventUtils
-	 */
-
-	var TouchEventUtils = {
-	  /**
-	   * Utility function for common case of extracting out the primary touch from a
-	   * touch event.
-	   * - `touchEnd` events usually do not have the `touches` property.
-	   *   http://stackoverflow.com/questions/3666929/
-	   *   mobile-sarai-touchend-event-not-firing-when-last-touch-is-removed
-	   *
-	   * @param {Event} nativeEvent Native event that may or may not be a touch.
-	   * @return {TouchesObject?} an object with pageX and pageY or null.
-	   */
-	  extractSingleTouch: function(nativeEvent) {
-	    var touches = nativeEvent.touches;
-	    var changedTouches = nativeEvent.changedTouches;
-	    var hasTouches = touches && touches.length > 0;
-	    var hasChangedTouches = changedTouches && changedTouches.length > 0;
-
-	    return !hasTouches && hasChangedTouches ? changedTouches[0] :
-	           hasTouches ? touches[0] :
-	           nativeEvent;
-	  }
-	};
-
-	module.exports = TouchEventUtils;
-
-
-/***/ },
-/* 593 */
-/***/ function(module, exports) {
-
-	/**
-	 * Copyright 2013-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule keyOf
-	 */
-
-	/**
-	 * Allows extraction of a minified key. Let's the build system minify keys
-	 * without losing the ability to dynamically use key strings as values
-	 * themselves. Pass in an object with a single key/val pair and it will return
-	 * you the string key of that single record. Suppose you want to grab the
-	 * value for a key 'className' inside of an object. Key/val minification may
-	 * have aliased that key to be 'xa12'. keyOf({className: null}) will return
-	 * 'xa12' in that case. Resolve keys you want to use once at startup time, then
-	 * reuse those resolutions.
-	 */
-	"use strict";
-
-	var keyOf = function (oneKeyObj) {
-	  var key;
-	  for (key in oneKeyObj) {
-	    if (!oneKeyObj.hasOwnProperty(key)) {
-	      continue;
-	    }
-	    return key;
-	  }
-	  return null;
-	};
-
-	module.exports = keyOf;
-
-/***/ },
-/* 594 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _react = __webpack_require__(291);
-
-	var _react2 = _interopRequireDefault(_react);
-
-	var _avatar = __webpack_require__(595);
+	var _avatar = __webpack_require__(582);
 
 	var _avatar2 = _interopRequireDefault(_avatar);
 
-	var _CardList = __webpack_require__(596);
+	var _CardList = __webpack_require__(583);
 
 	var _CardList2 = _interopRequireDefault(_CardList);
 
@@ -52891,7 +52156,7 @@
 	exports.default = Player;
 
 /***/ },
-/* 595 */
+/* 582 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -53070,7 +52335,7 @@
 	exports.default = Avatar;
 
 /***/ },
-/* 596 */
+/* 583 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -53083,7 +52348,7 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _Card = __webpack_require__(580);
+	var _Card = __webpack_require__(584);
 
 	var _Card2 = _interopRequireDefault(_Card);
 
@@ -53107,7 +52372,7 @@
 	exports.default = CardList;
 
 /***/ },
-/* 597 */
+/* 584 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -53120,22 +52385,757 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _reactRedux = __webpack_require__(448);
+	var _styles = __webpack_require__(585);
 
-	var _PlayerList = __webpack_require__(579);
-
-	var _PlayerList2 = _interopRequireDefault(_PlayerList);
+	var _styles2 = _interopRequireDefault(_styles);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var mapStateToProps = function mapStateToProps(state) {
-	  console.log(state.game.players);
-	  return {
-	    players: state.game.players || []
+	var colors = _styles2.default.Colors;
+
+	var Card = function Card(_ref) {
+	  var card = _ref.card;
+
+	  var suit = void 0,
+	      color = void 0,
+	      rank = void 0,
+	      style = void 0;
+
+	  switch (Math.floor(card / 13)) {
+	    case 0:
+	      suit = '♥';
+	      color = colors.red500;
+	      break;
+	    case 1:
+	      suit = '♠';
+	      color = colors.black;
+	      break;
+	    case 2:
+	      suit = '♦';
+	      color = colors.red500;
+	      break;
+	    case 3:
+	      suit = '♣';
+	      color = colors.black;
+	      break;
+	  }
+	  rank = Math.floor(card % 13);
+	  if (rank < 9) {
+	    rank = '' + (rank + 2);
+	  } else if (rank == 9) {
+	    rank = 'J';
+	  } else if (rank == 10) {
+	    rank = 'Q';
+	  } else if (rank == 11) {
+	    rank = 'K';
+	  } else if (rank == 12) {
+	    rank = 'A';
+	  }
+
+	  style = {
+	    width: 40,
+	    height: 56,
+	    position: 'relative',
+	    borderStyle: 'dotted',
+	    borderWidth: 1,
+	    margin: 4,
+	    color: color
 	  };
+	  return _react2.default.createElement(
+	    'div',
+	    { style: style },
+	    _react2.default.createElement(
+	      'div',
+	      { style: {
+	          width: '100%',
+	          position: 'absolute',
+	          top: 0,
+	          textAlign: 'left'
+	        } },
+	      suit
+	    ),
+	    _react2.default.createElement(
+	      'div',
+	      { style: {
+	          width: '100%',
+	          position: 'absolute',
+	          top: '37%',
+	          textAlign: 'center'
+	        } },
+	      rank
+	    ),
+	    _react2.default.createElement(
+	      'div',
+	      { style: {
+	          width: '100%',
+	          position: 'absolute',
+	          bottom: 0,
+	          textAlign: 'right'
+	        } },
+	      suit
+	    )
+	  );
 	};
 
-	exports.default = (0, _reactRedux.connect)(mapStateToProps)(_PlayerList2.default);
+	exports.default = Card;
+
+/***/ },
+/* 585 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.ZIndex = exports.getMuiTheme = exports.ThemeDecorator = exports.DarkRawTheme = exports.LightRawTheme = exports.lightBaseTheme = exports.Typography = exports.Transitions = exports.ThemeManager = exports.Spacing = exports.Colors = exports.AutoPrefix = undefined;
+
+	var _autoPrefix = __webpack_require__(562);
+
+	var _autoPrefix2 = _interopRequireDefault(_autoPrefix);
+
+	var _colors = __webpack_require__(504);
+
+	var Colors = _interopRequireWildcard(_colors);
+
+	var _spacing = __webpack_require__(505);
+
+	var _spacing2 = _interopRequireDefault(_spacing);
+
+	var _themeManager = __webpack_require__(586);
+
+	var _themeManager2 = _interopRequireDefault(_themeManager);
+
+	var _transitions = __webpack_require__(492);
+
+	var _transitions2 = _interopRequireDefault(_transitions);
+
+	var _typography = __webpack_require__(544);
+
+	var _typography2 = _interopRequireDefault(_typography);
+
+	var _lightBaseTheme = __webpack_require__(503);
+
+	var _lightBaseTheme2 = _interopRequireDefault(_lightBaseTheme);
+
+	var _darkBaseTheme = __webpack_require__(587);
+
+	var _darkBaseTheme2 = _interopRequireDefault(_darkBaseTheme);
+
+	var _themeDecorator = __webpack_require__(588);
+
+	var _themeDecorator2 = _interopRequireDefault(_themeDecorator);
+
+	var _getMuiTheme = __webpack_require__(494);
+
+	var _getMuiTheme2 = _interopRequireDefault(_getMuiTheme);
+
+	var _zIndex = __webpack_require__(506);
+
+	var _zIndex2 = _interopRequireDefault(_zIndex);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var LightRawTheme = _lightBaseTheme2.default;
+	var DarkRawTheme = _darkBaseTheme2.default;
+
+	exports.AutoPrefix = _autoPrefix2.default;
+	exports.Colors = Colors;
+	exports.Spacing = _spacing2.default;
+	exports.ThemeManager = _themeManager2.default;
+	exports.Transitions = _transitions2.default;
+	exports.Typography = _typography2.default;
+	exports.lightBaseTheme = _lightBaseTheme2.default;
+	exports.LightRawTheme = LightRawTheme;
+	exports.DarkRawTheme = DarkRawTheme;
+	exports.ThemeDecorator = _themeDecorator2.default;
+	exports.getMuiTheme = _getMuiTheme2.default;
+	exports.ZIndex = _zIndex2.default;
+	exports.default = {
+	  AutoPrefix: _autoPrefix2.default,
+	  Colors: Colors,
+	  Spacing: _spacing2.default,
+	  ThemeManager: _themeManager2.default,
+	  Transitions: _transitions2.default,
+	  Typography: _typography2.default,
+	  lightBaseTheme: _lightBaseTheme2.default,
+	  LightRawTheme: LightRawTheme,
+	  darkBaseTheme: _darkBaseTheme2.default,
+	  DarkRawTheme: DarkRawTheme,
+	  ThemeDecorator: _themeDecorator2.default,
+	  getMuiTheme: _getMuiTheme2.default,
+	  ZIndex: _zIndex2.default
+	};
+
+/***/ },
+/* 586 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _reactAddonsUpdate = __webpack_require__(567);
+
+	var _reactAddonsUpdate2 = _interopRequireDefault(_reactAddonsUpdate);
+
+	var _lodash = __webpack_require__(495);
+
+	var _lodash2 = _interopRequireDefault(_lodash);
+
+	var _getMuiTheme2 = __webpack_require__(494);
+
+	var _getMuiTheme3 = _interopRequireDefault(_getMuiTheme2);
+
+	var _warning = __webpack_require__(502);
+
+	var _warning2 = _interopRequireDefault(_warning);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = {
+	  getMuiTheme: function getMuiTheme(baseTheme, muiTheme) {
+	    process.env.NODE_ENV !== "production" ? (0, _warning2.default)(false, 'ThemeManager is deprecated. please import getMuiTheme' + ' directly from "material-ui/lib/styles/getMuiTheme"') : void 0;
+	    return (0, _getMuiTheme3.default)(baseTheme, muiTheme);
+	  },
+	  modifyRawThemeSpacing: function modifyRawThemeSpacing(muiTheme, spacing) {
+	    process.env.NODE_ENV !== "production" ? (0, _warning2.default)(false, 'modifyRawThemeSpacing is deprecated. please use getMuiTheme ' + ' to modify your theme directly. http://www.material-ui.com/#/customization/themes') : void 0;
+	    return (0, _getMuiTheme3.default)((0, _reactAddonsUpdate2.default)(muiTheme.baseTheme, { spacing: { $set: spacing } }));
+	  },
+	  modifyRawThemePalette: function modifyRawThemePalette(muiTheme, palette) {
+	    process.env.NODE_ENV !== "production" ? (0, _warning2.default)(false, 'modifyRawThemePalette is deprecated. please use getMuiTheme ' + ' to modify your theme directly. http://www.material-ui.com/#/customization/themes') : void 0;
+	    var newPalette = (0, _lodash2.default)(muiTheme.baseTheme.palette, palette);
+	    return (0, _getMuiTheme3.default)((0, _reactAddonsUpdate2.default)(muiTheme.baseTheme, { palette: { $set: newPalette } }));
+	  },
+	  modifyRawThemeFontFamily: function modifyRawThemeFontFamily(muiTheme, fontFamily) {
+	    process.env.NODE_ENV !== "production" ? (0, _warning2.default)(false, 'modifyRawThemeFontFamily is deprecated. please use getMuiTheme ' + ' to modify your theme directly. http://www.material-ui.com/#/customization/themes') : void 0;
+	    return (0, _getMuiTheme3.default)((0, _reactAddonsUpdate2.default)(muiTheme.baseTheme, { fontFamily: { $set: fontFamily } }));
+	  }
+	};
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(287)))
+
+/***/ },
+/* 587 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _colors = __webpack_require__(504);
+
+	var _colorManipulator = __webpack_require__(501);
+
+	var _colorManipulator2 = _interopRequireDefault(_colorManipulator);
+
+	var _spacing = __webpack_require__(505);
+
+	var _spacing2 = _interopRequireDefault(_spacing);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = {
+	  spacing: _spacing2.default,
+	  fontFamily: 'Roboto, sans-serif',
+	  palette: {
+	    primary1Color: _colors.cyan700,
+	    primary2Color: _colors.cyan700,
+	    primary3Color: _colors.grey600,
+	    accent1Color: _colors.pinkA200,
+	    accent2Color: _colors.pinkA400,
+	    accent3Color: _colors.pinkA100,
+	    textColor: _colors.fullWhite,
+	    alternateTextColor: '#303030',
+	    canvasColor: '#303030',
+	    borderColor: _colorManipulator2.default.fade(_colors.fullWhite, 0.3),
+	    disabledColor: _colorManipulator2.default.fade(_colors.fullWhite, 0.3),
+	    pickerHeaderColor: _colorManipulator2.default.fade(_colors.fullWhite, 0.12),
+	    clockCircleColor: _colorManipulator2.default.fade(_colors.fullWhite, 0.12)
+	  }
+	};
+
+/***/ },
+/* 588 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _react = __webpack_require__(291);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _warning = __webpack_require__(502);
+
+	var _warning2 = _interopRequireDefault(_warning);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = function (customTheme) {
+	  process.env.NODE_ENV !== "production" ? (0, _warning2.default)(false, 'ThemeDecorator is deprecated, please use MuiThemeProvider instead.') : void 0;
+
+	  return function (Component) {
+	    return _react2.default.createClass({
+	      childContextTypes: {
+	        muiTheme: _react2.default.PropTypes.object
+	      },
+
+	      getChildContext: function getChildContext() {
+	        return {
+	          muiTheme: customTheme
+	        };
+	      },
+	      render: function render() {
+	        return _react2.default.createElement(Component, this.props);
+	      }
+	    });
+	  };
+	};
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(287)))
+
+/***/ },
+/* 589 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _redux = __webpack_require__(454);
+
+	var _auth = __webpack_require__(590);
+
+	var _auth2 = _interopRequireDefault(_auth);
+
+	var _connection = __webpack_require__(591);
+
+	var _connection2 = _interopRequireDefault(_connection);
+
+	var _game = __webpack_require__(592);
+
+	var _game2 = _interopRequireDefault(_game);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var reducers = (0, _redux.combineReducers)({
+	  auth: _auth2.default,
+	  connection: _connection2.default,
+	  game: _game2.default
+	});
+
+	exports.default = reducers;
+
+/***/ },
+/* 590 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+	var _actions = __webpack_require__(475);
+
+	var auth = function auth() {
+	  var state = arguments.length <= 0 || arguments[0] === undefined ? { authorized: false } : arguments[0];
+	  var action = arguments[1];
+
+	  switch (action.type) {
+	    case _actions.LOGIN_STARTED:
+	      console.log('login started');
+	      return state;
+	    case _actions.LOGIN_SUCCESS:
+	      return _extends({}, state, {
+	        authorized: true
+	      });
+	    case _actions.LOGIN_FAILED:
+	      console.log('login failed');
+	      return state;
+	    default:
+	      return state;
+	  }
+	};
+
+	exports.default = auth;
+
+/***/ },
+/* 591 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+	var connection = function connection() {
+	  var state = arguments.length <= 0 || arguments[0] === undefined ? { connected: false } : arguments[0];
+	  var action = arguments[1];
+
+	  switch (action.type) {
+	    case 'WS_CONNECTED':
+	      return _extends({}, state, {
+	        connected: true
+	      });
+	    default:
+	      return state;
+	  }
+	};
+
+	exports.default = connection;
+
+/***/ },
+/* 592 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+	var _actions = __webpack_require__(475);
+
+	var _protocols = __webpack_require__(477);
+
+	var _protocols2 = _interopRequireDefault(_protocols);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var MessageType = _protocols2.default.MessageType;
+	var decode = _protocols2.default.decode;
+	var JOIN_TABLE_RES = MessageType.JOIN_TABLE_RES;
+
+
+	var game = function game() {
+	  var state = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+	  var action = arguments[1];
+
+	  switch (action.type) {
+	    case _actions.PROTOCOL_RECEIVED:
+	      var msg = decode(action.data);
+	      switch (msg.type) {
+	        case JOIN_TABLE_RES:
+	          return _extends({}, state, {
+	            tableId: msg.table.id,
+	            players: msg.table.players
+	          });
+	      }
+	    default:
+	      return state;
+	  }
+	};
+	exports.default = game;
+
+/***/ },
+/* 593 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var defaultClickRejectionStrategy = __webpack_require__(594);
+
+	module.exports = function injectTapEventPlugin (strategyOverrides) {
+	  strategyOverrides = strategyOverrides || {}
+	  var shouldRejectClick = strategyOverrides.shouldRejectClick || defaultClickRejectionStrategy;
+
+	  __webpack_require__(320).injection.injectEventPluginsByName({
+	    "TapEventPlugin":       __webpack_require__(595)(shouldRejectClick)
+	  });
+	};
+
+
+/***/ },
+/* 594 */
+/***/ function(module, exports) {
+
+	module.exports = function(lastTouchEvent, clickTimestamp) {
+	  if (lastTouchEvent && (clickTimestamp - lastTouchEvent) < 750) {
+	    return true;
+	  }
+	};
+
+
+/***/ },
+/* 595 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule TapEventPlugin
+	 * @typechecks static-only
+	 */
+
+	"use strict";
+
+	var EventConstants = __webpack_require__(319);
+	var EventPluginUtils = __webpack_require__(322);
+	var EventPropagators = __webpack_require__(362);
+	var SyntheticUIEvent = __webpack_require__(376);
+	var TouchEventUtils = __webpack_require__(596);
+	var ViewportMetrics = __webpack_require__(327);
+
+	var keyOf = __webpack_require__(597);
+	var topLevelTypes = EventConstants.topLevelTypes;
+
+	var isStartish = EventPluginUtils.isStartish;
+	var isEndish = EventPluginUtils.isEndish;
+
+	var isTouch = function(topLevelType) {
+	  var touchTypes = [
+	    topLevelTypes.topTouchCancel,
+	    topLevelTypes.topTouchEnd,
+	    topLevelTypes.topTouchStart,
+	    topLevelTypes.topTouchMove
+	  ];
+	  return touchTypes.indexOf(topLevelType) >= 0;
+	}
+
+	/**
+	 * Number of pixels that are tolerated in between a `touchStart` and `touchEnd`
+	 * in order to still be considered a 'tap' event.
+	 */
+	var tapMoveThreshold = 10;
+	var ignoreMouseThreshold = 750;
+	var startCoords = {x: null, y: null};
+	var lastTouchEvent = null;
+
+	var Axis = {
+	  x: {page: 'pageX', client: 'clientX', envScroll: 'currentPageScrollLeft'},
+	  y: {page: 'pageY', client: 'clientY', envScroll: 'currentPageScrollTop'}
+	};
+
+	function getAxisCoordOfEvent(axis, nativeEvent) {
+	  var singleTouch = TouchEventUtils.extractSingleTouch(nativeEvent);
+	  if (singleTouch) {
+	    return singleTouch[axis.page];
+	  }
+	  return axis.page in nativeEvent ?
+	    nativeEvent[axis.page] :
+	    nativeEvent[axis.client] + ViewportMetrics[axis.envScroll];
+	}
+
+	function getDistance(coords, nativeEvent) {
+	  var pageX = getAxisCoordOfEvent(Axis.x, nativeEvent);
+	  var pageY = getAxisCoordOfEvent(Axis.y, nativeEvent);
+	  return Math.pow(
+	    Math.pow(pageX - coords.x, 2) + Math.pow(pageY - coords.y, 2),
+	    0.5
+	  );
+	}
+
+	var touchEvents = [
+	  topLevelTypes.topTouchStart,
+	  topLevelTypes.topTouchCancel,
+	  topLevelTypes.topTouchEnd,
+	  topLevelTypes.topTouchMove,
+	];
+
+	var dependencies = [
+	  topLevelTypes.topMouseDown,
+	  topLevelTypes.topMouseMove,
+	  topLevelTypes.topMouseUp,
+	].concat(touchEvents);
+
+	var eventTypes = {
+	  touchTap: {
+	    phasedRegistrationNames: {
+	      bubbled: keyOf({onTouchTap: null}),
+	      captured: keyOf({onTouchTapCapture: null})
+	    },
+	    dependencies: dependencies
+	  }
+	};
+
+	var now = (function() {
+	  if (Date.now) {
+	    return Date.now;
+	  } else {
+	    // IE8 support: http://stackoverflow.com/questions/9430357/please-explain-why-and-how-new-date-works-as-workaround-for-date-now-in
+	    return function () {
+	      return +new Date;
+	    }
+	  }
+	})();
+
+	function createTapEventPlugin(shouldRejectClick) {
+	  return {
+
+	    tapMoveThreshold: tapMoveThreshold,
+
+	    ignoreMouseThreshold: ignoreMouseThreshold,
+
+	    eventTypes: eventTypes,
+
+	    /**
+	     * @param {string} topLevelType Record from `EventConstants`.
+	     * @param {DOMEventTarget} topLevelTarget The listening component root node.
+	     * @param {string} topLevelTargetID ID of `topLevelTarget`.
+	     * @param {object} nativeEvent Native browser event.
+	     * @return {*} An accumulation of synthetic events.
+	     * @see {EventPluginHub.extractEvents}
+	     */
+	    extractEvents: function(
+	        topLevelType,
+	        topLevelTarget,
+	        topLevelTargetID,
+	        nativeEvent,
+	        nativeEventTarget) {
+
+	      if (isTouch(topLevelType)) {
+	        lastTouchEvent = now();
+	      } else {
+	        if (shouldRejectClick(lastTouchEvent, now())) {
+	          return null;
+	        }
+	      }
+
+	      if (!isStartish(topLevelType) && !isEndish(topLevelType)) {
+	        return null;
+	      }
+	      var event = null;
+	      var distance = getDistance(startCoords, nativeEvent);
+	      if (isEndish(topLevelType) && distance < tapMoveThreshold) {
+	        event = SyntheticUIEvent.getPooled(
+	          eventTypes.touchTap,
+	          topLevelTargetID,
+	          nativeEvent,
+	          nativeEventTarget
+	        );
+	      }
+	      if (isStartish(topLevelType)) {
+	        startCoords.x = getAxisCoordOfEvent(Axis.x, nativeEvent);
+	        startCoords.y = getAxisCoordOfEvent(Axis.y, nativeEvent);
+	      } else if (isEndish(topLevelType)) {
+	        startCoords.x = 0;
+	        startCoords.y = 0;
+	      }
+	      EventPropagators.accumulateTwoPhaseDispatches(event);
+	      return event;
+	    }
+
+	  };
+	}
+
+	module.exports = createTapEventPlugin;
+
+
+/***/ },
+/* 596 */
+/***/ function(module, exports) {
+
+	/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule TouchEventUtils
+	 */
+
+	var TouchEventUtils = {
+	  /**
+	   * Utility function for common case of extracting out the primary touch from a
+	   * touch event.
+	   * - `touchEnd` events usually do not have the `touches` property.
+	   *   http://stackoverflow.com/questions/3666929/
+	   *   mobile-sarai-touchend-event-not-firing-when-last-touch-is-removed
+	   *
+	   * @param {Event} nativeEvent Native event that may or may not be a touch.
+	   * @return {TouchesObject?} an object with pageX and pageY or null.
+	   */
+	  extractSingleTouch: function(nativeEvent) {
+	    var touches = nativeEvent.touches;
+	    var changedTouches = nativeEvent.changedTouches;
+	    var hasTouches = touches && touches.length > 0;
+	    var hasChangedTouches = changedTouches && changedTouches.length > 0;
+
+	    return !hasTouches && hasChangedTouches ? changedTouches[0] :
+	           hasTouches ? touches[0] :
+	           nativeEvent;
+	  }
+	};
+
+	module.exports = TouchEventUtils;
+
+
+/***/ },
+/* 597 */
+/***/ function(module, exports) {
+
+	/**
+	 * Copyright 2013-2015, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule keyOf
+	 */
+
+	/**
+	 * Allows extraction of a minified key. Let's the build system minify keys
+	 * without losing the ability to dynamically use key strings as values
+	 * themselves. Pass in an object with a single key/val pair and it will return
+	 * you the string key of that single record. Suppose you want to grab the
+	 * value for a key 'className' inside of an object. Key/val minification may
+	 * have aliased that key to be 'xa12'. keyOf({className: null}) will return
+	 * 'xa12' in that case. Resolve keys you want to use once at startup time, then
+	 * reuse those resolutions.
+	 */
+	"use strict";
+
+	var keyOf = function (oneKeyObj) {
+	  var key;
+	  for (key in oneKeyObj) {
+	    if (!oneKeyObj.hasOwnProperty(key)) {
+	      continue;
+	    }
+	    return key;
+	  }
+	  return null;
+	};
+
+	module.exports = keyOf;
 
 /***/ }
 /******/ ]);
