@@ -14,5 +14,5 @@ content_types_provided(Req, State) ->
 get_json(Req, State) ->
   {Uid, Req2} = cowboy_req:binding(uid, Req),
   {ok, User} = storage:get(Uid),
-  Ret = jiffy:encode({?RECORD_TO_TUPLELIST(user, User)}),
+  Ret = jiffy:encode({?RECORD_TO_TUPLELIST(player_db, User)}),
 	{Ret, Req2, State}.

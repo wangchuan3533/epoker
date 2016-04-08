@@ -24,9 +24,9 @@ handle(Req, State=#state{}) ->
       case lists:keyfind(<<"register">>, 1, JsonReqList) of
       {<<"register">>, true} ->
         Uid = generate_uid(),
-        User = #user{id = Uid, name = Uid, password = Uid, chips = ?INIT_CHIPS},
-        ok = storage:set(User),
-        Ret = jiffy:encode({?RECORD_TO_TUPLELIST(user, User)}),
+        PlayerDb = #player_db{id = Uid, name = Uid, password = Uid, chips = ?INIT_CHIPS},
+        ok = storage:set(PlayerDb),
+        Ret = jiffy:encode({?RECORD_TO_TUPLELIST(player_db, PlayerDb)}),
         {ok, Req5} = cowboy_req:reply(200, cowboy_req:set_resp_body(Ret, Req4)),
         {ok, Req5, State};
       _Other -> %% not register
@@ -34,9 +34,9 @@ handle(Req, State=#state{}) ->
         {<<"password">>, Password} = lists:keyfind(<<"password">>, 1, JsonReqList),
         %ok = io:format("~p~n", [Password]),
         {ok, Req5} = case storage:get(Uid) of
-          {ok, #user{id = Uid, password = Password}} ->
+          {ok, #player_db{id = Uid, password = Password}} ->
             cowboy_req:reply(200, cowboy_req:set_resp_body(binary:list_to_bin(io_lib:format("{\"token\":\"~s\"}", [Uid])), Req4));
-          {ok, _WrongUser} ->
+          {ok, _WrongPlayer} ->
             cowboy_req:reply(403, cowboy_req:set_resp_body(<<"{\"errmsg\":\"wrong password\"}">>, Req4));
           {error, _Reason} ->
             cowboy_req:reply(403, cowboy_req:set_resp_body(<<"{\"errmsg\":\"user not exist\"}">>, Req4))

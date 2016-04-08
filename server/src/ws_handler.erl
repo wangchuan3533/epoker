@@ -49,8 +49,7 @@ websocket_info(_Info, Req, State) ->
 	{ok, Req, State}.
 
 websocket_terminate(_Reason, _Req, #state{player = Player}) ->
-  Player:stop(),
-	ok.
+  ok = Player:stop().
 
 handle_pb_message(Player, Msg) ->
   case Msg of
@@ -62,7 +61,7 @@ handle_pb_message(Player, Msg) ->
       TablePb = #tablepb{id = TableId1, players = PlayersPb},
       Res = #jointableres{errno = 0, table = TablePb},
       #message{type = 'JOIN_TABLE_RES', data = messages_pb:encode(Res)};
-  
+
     #message{type = 'LEAVE_TABLE_REQ', data = Data} ->
       #leavetablereq{} = messages_pb:decode_leavetablereq(Data),
       ok = Player:call(#c2s_leave_table{}),

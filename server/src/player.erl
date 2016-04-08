@@ -17,10 +17,13 @@
 -export([code_change/4]).
 
 -record(state, {
-  lobby = undefined,
-  table = undefined,
-  game = undefined,
-  user = undefined
+  lobby,
+  table,
+  game,
+  player_db,
+  id,
+  name,
+  chips
 }).
 
 %% API.
@@ -39,8 +42,8 @@ this() ->
   #player{pid = self()}.
 
 %% gen_fsm.
-init([{User, Lobby}]) ->
-	{ok, in_lobby, #state{lobby = Lobby, user = User}}.
+init([{PlayerDb = #player_db{id = Id, name = Name, chips = Chips}, Lobby}]) ->
+	{ok, in_lobby, #state{lobby = Lobby, player_db = PlayerDb, id = Id, name = Name, chips = Chips}}.
 
 in_lobby(_Event, StateData) ->
 	{next_state, in_lobby, StateData}.
@@ -100,7 +103,7 @@ handle_sync_event(_Event, _From, StateName, StateData) ->
 handle_info(_Info, StateName, StateData) ->
 	{next_state, StateName, StateData}.
 
-terminate(Reason, StateName, #state{table = Table, game = Game}) ->
+terminate(Reason, StateName, #state{table = Table, game = Game, player_db = PlayerDb, chips = Chips}) ->
   io:format("player ~p stoped for reason ~p~n", [this(), Reason]),
   case StateName of
     in_game ->
@@ -111,7 +114,9 @@ terminate(Reason, StateName, #state{table = Table, game = Game}) ->
     in_lobby ->
       ok
   end,
-	ok.
+
+  %% save back to db
+  ok = storage:set(PlayerDb#player_db{chips = Chips}).
 
 code_change(_OldVsn, StateName, StateData, _Extra) ->
 	{ok, StateName, StateData}.
@@ -126,7 +131,7 @@ test() ->
 
 test_join() ->
   L = lobby:new(),
-  U = #user{id = 1, name = 1},
+  U = #player_db{id = 1, name = 1},
   P = player:new({U, L}),
   {in_lobby, #state{table = undefined}} = P:dump(),
   P:call(#c2s_join_table{table_id = -1}),

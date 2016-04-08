@@ -1,9 +1,3 @@
--record(deck, {pid}).
--record(table, {pid}).
--record(game, {pid}).
--record(player, {pid}).
--record(lobby, {pid}).
-
 -define(MAX_PLAYERS, 10).
 -define(MIN_PLAYERS, 2).
 
@@ -15,7 +9,13 @@
 -define(INIT_CHIPS, 10000).
 -define(RECORD_TO_TUPLELIST(Rec, Ref), lists:zip(record_info(fields, Rec),tl(tuple_to_list(Ref)))).
 
--record(user, {id, password, name, chips = ?INIT_CHIPS}).
+-record(deck, {pid}).
+-record(table, {pid}).
+-record(game, {pid}).
+-record(player, {pid}).
+-record(lobby, {pid}).
+-record(player_db, {id, password, name, chips = ?INIT_CHIPS}).
+
 
 %% client to server protocols
 -record(c2s_join_table, {table_id = -1}).

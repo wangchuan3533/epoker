@@ -23,7 +23,8 @@
   lobby,
   waiting_players = [],
   playing_players = [],
-  game = undefined
+  game = undefined,
+  buyin = 1000
 }).
 
 %% API.
@@ -125,8 +126,8 @@ test() ->
 test_join_leave() ->
   Lobby = lobby:new(),
   Table = table:new({0, Lobby}),
-  U1 = #user{id = 1, name = 1},
-  U2 = #user{id = 2, name = 2},
+  U1 = #player_db{id = 1, name = 1},
+  U2 = #player_db{id = 2, name = 2},
   A = player:new({U1, Lobby}),
   B = player:new({U2, Lobby}),
   {waiting, #state{waiting_players = [], playing_players = [], game = undefined}} = Table:dump(),
@@ -146,11 +147,11 @@ test_join_leave() ->
 test_game_start() ->
   Lobby = lobby:new(),
   {ok, {TableId, Table}} = Lobby:call(#p2l_get_table{}),
-  
-  U1 = #user{id = 1, name = 1},
-  U2 = #user{id = 2, name = 2},
-  U3 = #user{id = 3, name = 3},
-  
+
+  U1 = #player_db{id = 1, name = 1},
+  U2 = #player_db{id = 2, name = 2},
+  U3 = #player_db{id = 3, name = 3},
+
   A = player:new({U1, Lobby}),
   B = player:new({U2, Lobby}),
   C = player:new({U3, Lobby}),
