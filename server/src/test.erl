@@ -1,5 +1,6 @@
 -module(test).
 -include("holdem.hrl").
+-include("messages_pb.hrl").
 -export([test/0]).
 
 test() ->
@@ -24,18 +25,18 @@ test1() ->
   U2 = #player_db{id = 2, name = 2},
   P1 = player:new({U1, Lobby}),
   P2 = player:new({U2, Lobby}),
-  {ok, {TableId, _}} = P1:call(#c2s_join_table{table_id = -1}),
-  {ok, {TableId, _}} = P2:call(#c2s_join_table{table_id = -1}),
+  {ok, {TableId, _}} = P1:call(#jointablereq{table_id = -1}),
+  {ok, {TableId, _}} = P2:call(#jointablereq{table_id = -1}),
   {ok, {TableId, Table}} = Lobby:call(#p2l_get_table{table_id = TableId}),
   ok = io:format("TableId ~w Table ~w~n", [TableId, Table]),
-  [0] = P1:call(#c2s_list_table{}),
+  [0] = P1:call(#listtablereq{}),
   ok = Table:call(start),
-  ok = P1:call(#c2s_action{action = ?ACTION_RAISE, amount = 100}),
-  ok = P2:call(#c2s_action{action = ?ACTION_RAISE, amount = 0}),
-  ok = P1:call(#c2s_leave_game{}),
-  ok = P1:call(#c2s_leave_table{}),
-  ok = P2:call(#c2s_leave_game{}),
-  ok = P2:call(#c2s_leave_table{}),
+  ok = P1:call(#actionreq{action = ?ACTION_RAISE, amount = 100}),
+  ok = P2:call(#actionreq{action = ?ACTION_RAISE, amount = 0}),
+  ok = P1:call(#leavegamereq{}),
+  ok = P1:call(#leavetablereq{}),
+  ok = P2:call(#leavegamereq{}),
+  ok = P2:call(#leavetablereq{}),
   ok = P2:stop(),
   ok = P1:stop(),
   ok = Lobby:stop().

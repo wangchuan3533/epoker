@@ -129,6 +129,28 @@
             ]
         },
         {
+            "name": "OtherJoinTableNtf",
+            "fields": [
+                {
+                    "rule": "required",
+                    "type": "PlayerPb",
+                    "name": "player",
+                    "id": 1
+                }
+            ]
+        },
+        {
+            "name": "OtherLeaveTableNtf",
+            "fields": [
+                {
+                    "rule": "required",
+                    "type": "string",
+                    "name": "id",
+                    "id": 1
+                }
+            ]
+        },
+        {
             "name": "PlayerPb",
             "fields": [
                 {
@@ -212,6 +234,14 @@
                 {
                     "name": "ACTION_RES",
                     "id": 10
+                },
+                {
+                    "name": "OTHER_JOIN_TABLE_NTF",
+                    "id": 11
+                },
+                {
+                    "name": "OTHER_LEAVE_TABLE_NTF",
+                    "id": 12
                 }
             ]
         },

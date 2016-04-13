@@ -30,7 +30,11 @@ create_test_players() ->
   mnesia:transaction(fun() -> mnesia:write(#player_db{id = <<"t1">>, password = <<"t1">>, name = <<"t1">>, chips = 100000}) end),
   mnesia:transaction(fun() -> mnesia:write(#player_db{id = <<"t2">>, password = <<"t2">>, name = <<"t2">>, chips = 100000}) end),
   mnesia:transaction(fun() -> mnesia:write(#player_db{id = <<"t3">>, password = <<"t3">>, name = <<"t3">>, chips = 100000}) end),
-  mnesia:transaction(fun() -> mnesia:write(#player_db{id = <<"t4">>, password = <<"t4">>, name = <<"t4">>, chips = 100000}) end).
+  mnesia:transaction(fun() -> mnesia:write(#player_db{id = <<"t4">>, password = <<"t4">>, name = <<"t4">>, chips = 100000}) end),
+  mnesia:transaction(fun() -> mnesia:write(#player_db{id = <<"t5">>, password = <<"t5">>, name = <<"t5">>, chips = 100000}) end),
+  mnesia:transaction(fun() -> mnesia:write(#player_db{id = <<"t6">>, password = <<"t6">>, name = <<"t6">>, chips = 100000}) end),
+  mnesia:transaction(fun() -> mnesia:write(#player_db{id = <<"t7">>, password = <<"t7">>, name = <<"t7">>, chips = 100000}) end),
+  mnesia:transaction(fun() -> mnesia:write(#player_db{id = <<"t8">>, password = <<"t8">>, name = <<"t8">>, chips = 100000}) end).
 
 test_write() ->
   mnesia:transaction(fun() -> mnesia:write(#player_db{id = 1, password = 1, name = player1, chips = 100000}) end),

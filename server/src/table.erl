@@ -1,6 +1,7 @@
 -module(table).
 -behaviour(gen_fsm).
 -include("holdem.hrl").
+-include("messages_pb.hrl").
 
 %% API.
 -export([new/1, stop/1, call/2, cast/2]).
@@ -86,9 +87,14 @@ handle_sync_event(#p2t_join{player = Player, id = PlayerId, name = PlayerName, c
         Lobby:call(#t2l_table_full{table_id = Id});
       true -> ok
       end,
-      PlayerInTable = #player_in_table{player = Player, id = PlayerId, name = PlayerName, chips = BuyIn},
+      %% notify other players
+      PlayerPb = #playerpb{id = PlayerId, name = PlayerName, chips = BuyIn},
+      OtherJoinTableNtf = #otherjointablentf{player = PlayerPb},
+      Message = #message{type = 'OTHER_JOIN_TABLE_NTF', data = OtherJoinTableNtf},
+      [ok = P:notice(Message) || #player_in_table{player = P} <- lists:append(PlayingPlayers, WaitingPlayers)],
+      PlayerInTable = #player_in_table{player = Player, pb = PlayerPb},
       WaitingPlayers1 = [PlayerInTable | WaitingPlayers],
-      {reply, {ok, {Id, lists:append(PlayingPlayers, WaitingPlayers1), BuyIn}}, StateName, StateData#state{waiting_players = WaitingPlayers1}}
+      {reply, {ok, {Id, [PlayerPb1 ||#player_in_table{pb = PlayerPb1} <- lists:append(PlayingPlayers, WaitingPlayers1)], BuyIn}}, StateName, StateData#state{waiting_players = WaitingPlayers1}}
     end
   end;
 
@@ -101,11 +107,11 @@ handle_sync_event(#p2t_leave{player = Player}, _From, StateName, StateData = #st
       ok
   end,
   case lists:keytake(Player, #player_in_table.player, PlayingPlayers) of
-    {value, #player_in_table{player = Player, id = _Id, name = _Name, chips = Chips}, PlayingPlayers1} ->
+    {value, #player_in_table{player = Player, pb = #playerpb{id = _Id, name = _Name, chips = Chips}}, PlayingPlayers1} ->
       {reply, {ok, Chips}, StateName, StateData#state{playing_players = PlayingPlayers1}};
     false ->
       case lists:keytake(Player, #player_in_table.player, WaitingPlayers) of
-        {value, #player_in_table{player = Player, id = _Id, name = _Name, chips = Chips}, WaitingPlayers1} ->
+        {value, #player_in_table{player = Player, pb = #playerpb{id = _Id, name = _Name, chips = Chips}}, WaitingPlayers1} ->
           {reply, {ok, Chips}, StateName, StateData#state{waiting_players = WaitingPlayers1}};
         false ->
           {reply, not_in_table, StateName, StateData}
@@ -171,11 +177,11 @@ test_game_start() ->
   A = player:new({U1, Lobby}),
   B = player:new({U2, Lobby}),
   C = player:new({U3, Lobby}),
-  {ok, {TableId, _}} = A:call(#c2s_join_table{table_id = TableId}),
-  {ok, {TableId, _}} = B:call(#c2s_join_table{table_id = TableId}),
+  {ok, {TableId, _}} = A:call(#jointablereq{table_id = TableId}),
+  {ok, {TableId, _}} = B:call(#jointablereq{table_id = TableId}),
   ok = Table:call(start),
   {playing, #state{waiting_players = [], playing_players = [B, A], game = Game = #game{}}} = Table:dump(),
-  {ok, {TableId, _}} = C:call(#c2s_join_table{table_id = 0}),
+  {ok, {TableId, _}} = C:call(#jointablereq{table_id = 0}),
   {preflop, _StateData} = Game:dump(),
   {playing, #state{waiting_players = [C], playing_players = [B, A]}} = Table:dump(),
   ok = Game:stop(),

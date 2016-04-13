@@ -8,6 +8,7 @@ const styles = {
     borderStyle: 'dotted',
     borderWidth: 1,
     position: 'relative',
+    margin: 20,
   },
   container: {
     left: 0,
@@ -53,13 +54,13 @@ const Player = ({name, chips}) => {
         <div style={styles.headBar}>
           {name}
         </div>
-        
+
         <div style={styles.avatar}>
           <Avatar>
             P
           </Avatar>
         </div>
-        
+
         <div style={styles.bottomBar}>
           ${chips}
         </div>

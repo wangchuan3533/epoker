@@ -14,14 +14,14 @@
 }).
 
 init(_, _, _) ->
-	{upgrade, protocol, cowboy_websocket}.
+  {upgrade, protocol, cowboy_websocket}.
 
 websocket_init(_Type, Req, _Opts) ->
   {Token, Req2} = cowboy_req:binding(token, Req),
   case storage:get(Token) of
     {ok, PlayerDb} ->
       Req3 = cowboy_req:compact(Req2),
-      {ok, Req3, #state{player = player:new({PlayerDb, lobby})}};
+      {ok, Req3, #state{player = player:new({PlayerDb, lobby, self()})}};
     {error, Reason} ->
       ok = io:format("auth failed reason ~p~n", [Reason]),
       {shutdown, Req2}
@@ -34,75 +34,37 @@ websocket_handle({text, Text}, Req, State = #state{player = Player}) ->
   catch
     throw:{error,_} -> "not json"
   end,
-	{reply, {text, Resp}, Req, State};
+  {reply, {text, Resp}, Req, State};
 websocket_handle({binary, Data}, Req, State = #state{player = Player}) ->
-  ReqMsg = messages_pb:decode_message(Data),
-  ResMsg = handle_pb_message(Player, ReqMsg),
-	{reply, {binary, messages_pb:encode(ResMsg)}, Req, State};
+  Msg = protocol:decode(Data),
+  {ok, Res} = Player:call(Msg),
+  ok = io:format("~p~n", [{debug, Res}]),
+  {reply, {binary, protocol:encode(Res)}, Req, State};
 websocket_handle(_Frame, Req, State) ->
-	{ok, Req, State}.
+  {ok, Req, State}.
 
-websocket_info({timeout, _Ref, Msg}, Req, State) ->
-  {reply, {text, Msg}, Req, State};
-
+websocket_info({notice, Message}, Req, State) ->
+  {reply, {binary, messages_pb:encode(Message)}, Req, State};
 websocket_info(_Info, Req, State) ->
-	{ok, Req, State}.
+  {ok, Req, State}.
 
 websocket_terminate(_Reason, _Req, #state{player = Player}) ->
   ok = Player:stop().
-
-handle_pb_message(Player, Msg) ->
-  case Msg of
-    #message{type = 'JOIN_TABLE_REQ', data = Data} ->
-      #jointablereq{table_id = TableId} = messages_pb:decode_jointablereq(Data),
-      {ok, {TableId1, Players, _BuyIn}} = Player:call(#c2s_join_table{table_id = TableId}),
-      ok = io:format("~p~n", [Players]),
-      PlayersPb = [#playerpb{id = Id, name = Name, chips = Chips} || #player_in_table{id = Id, name = Name, chips = Chips} <- Players],
-      TablePb = #tablepb{id = TableId1, players = PlayersPb},
-      Res = #jointableres{errno = 0, table = TablePb},
-      #message{type = 'JOIN_TABLE_RES', data = messages_pb:encode(Res)};
-
-    #message{type = 'LEAVE_TABLE_REQ', data = Data} ->
-      #leavetablereq{} = messages_pb:decode_leavetablereq(Data),
-      ok = Player:call(#c2s_leave_table{}),
-      Res = #leavetableres{errno = 0},
-      #message{type = 'LEAVE_TABLE_RES', data = messages_pb:encode(Res)};
-
-    #message{type = 'LIST_TABLE_REQ', data = Data} ->
-      #listtablereq{} = messages_pb:decode_listtablereq(Data),
-      TableIds = Player:call(#c2s_list_table{}),
-      Res = #listtableres{errno = 0, table_ids = TableIds},
-      #message{type = 'LIST_TABLE_RES', data = messages_pb:encode(Res)};
-
-    #message{type = 'LEAVE_GAME_REQ', data = Data} ->
-      #leavegamereq{} = messages_pb:decode_leavegamereq(Data),
-      %%ok = Player:call(#c2s_leave_game{}),
-      ignored = Player:call(#c2s_leave_game{}),
-      Res = #leavegameres{errno = 0},
-      #message{type = 'LEAVE_GAME_RES', data = messages_pb:encode(Res)};
-
-    #message{type = 'ACTION_REQ', data = Data} ->
-      #actionreq{action = Action, amount = Amount} = messages_pb:decode_actionreq(Data),
-      %ok = Player:call(#c2s_action{action = Action, amount = Amount}),
-      ignored = Player:call(#c2s_action{action = Action, amount = Amount}),
-      Res = #actionres{errno = 0},
-      #message{type = 'ACTION_RES', data = messages_pb:encode(Res)};
-    _Other ->
-      <<"not recognized protocol">>
-  end.
+%websocket_terminate(_Reason, _Req, _State) ->
+%  ok.
 
 handle_json_message(Player, Msg) ->
   case Msg of
     #{<<"type">> := <<"join">>} ->
-      Player:call(#c2s_join_table{table_id = maps:get(<<"tableId">>, Msg, -1)});
+      Player:call(#jointablereq{table_id = maps:get(<<"tableId">>, Msg, -1)});
     #{<<"type">> := <<"quit">>} ->
-      Player:call(#c2s_leave_game{});
+      Player:call(#leavegamereq{});
     #{<<"type">> := <<"leave">>} ->
-      Player:call(#c2s_leave_table{});
+      Player:call(#leavetablereq{});
     #{<<"type">> := <<"list">>} ->
-      Player:call(#c2s_list_table{});
+      Player:call(#listtablereq{});
     #{<<"type">> := <<"action">>} ->
-      Player:call(#c2s_action{action = maps:get(<<"action">>, Msg, 1), amount = maps:get(<<"amount">>, Msg, 0)});
+      Player:call(#actionreq{action = maps:get(<<"action">>, Msg, 1), amount = maps:get(<<"amount">>, Msg, 0)});
     _Other ->
       <<"not recognized protocol">>
   end.

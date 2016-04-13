@@ -1,6 +1,7 @@
 -module(game).
 -behaviour(gen_fsm).
 -include("holdem.hrl").
+-include("messages_pb.hrl").
 
 %% API.
 -export([new/1, stop/1, call/2, cast/2]).
@@ -307,8 +308,8 @@ test_check() ->
   PD2 = #player_db{id = 2, name = 2},
   P1 = player:new({UD1, L}),
   P2 = player:new({PD2, L}),
-  {ok, {TableId, _}} = P1:call(#c2s_join_table{}),
-  {ok, {TableId, _}} = P2:call(#c2s_join_table{}),
+  {ok, {TableId, _}} = P1:call(#jointablereq{}),
+  {ok, {TableId, _}} = P2:call(#jointablereq{}),
   {ok, {TableId, T}} = L:call(#p2l_get_table{table_id = TableId}),
   ok = T:call(start),
   {playing, {state, _, _, _, _, G}} = T:dump(),
@@ -354,8 +355,8 @@ test_fold() ->
   PD2 = #player_db{id = 2, name = 2},
   P1 = player:new({PD1, L}),
   P2 = player:new({PD2, L}),
-  {ok, {TableId, _}} = P1:call(#c2s_join_table{}),
-  {ok, {TableId, _}} = P2:call(#c2s_join_table{}),
+  {ok, {TableId, _}} = P1:call(#jointablereq{}),
+  {ok, {TableId, _}} = P2:call(#jointablereq{}),
   {ok, {TableId, T}} = L:call(#p2l_get_table{table_id = TableId}),
   ok = T:call(start),
   {playing, {state, _, _, _, _, G}} = T:dump(),

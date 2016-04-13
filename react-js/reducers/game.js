@@ -1,7 +1,7 @@
 import {PROTOCOL_RECEIVED} from '../actions'
 import Protocols from '../protocols'
 const {MessageType, decode} = Protocols
-const {JOIN_TABLE_RES} = MessageType
+const {JOIN_TABLE_RES, OTHER_JOIN_TABLE_NTF} = MessageType
 
 const game = (state = {}, action) => {
   switch (action.type) {
@@ -14,6 +14,14 @@ const game = (state = {}, action) => {
             tableId: msg.table.id,
             players: msg.table.players
           }
+        case OTHER_JOIN_TABLE_NTF:
+          return {
+            ...state,
+            players: state.players.concat(msg.player)
+          }
+        default:
+          console.log(msg.type)
+          return state
       }
     default:
       return state
