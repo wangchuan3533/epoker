@@ -5,7 +5,7 @@ import PlayerList from '../components/PlayerList'
 const mapStateToProps = (state) => {
   console.log(state.game.players)
   return {
-    players: state.game.players || []
+    players: state.game.get('players') || []
   }
 }
 
