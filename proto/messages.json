@@ -151,6 +151,29 @@
             ]
         },
         {
+            "name": "OtherActionNtf",
+            "fields": [
+                {
+                    "rule": "required",
+                    "type": "string",
+                    "name": "id",
+                    "id": 1
+                },
+                {
+                    "rule": "required",
+                    "type": "ActionType",
+                    "name": "action",
+                    "id": 2
+                },
+                {
+                    "rule": "required",
+                    "type": "uint32",
+                    "name": "amount",
+                    "id": 3
+                }
+            ]
+        },
+        {
             "name": "PlayerPb",
             "fields": [
                 {
@@ -242,6 +265,10 @@
                 {
                     "name": "OTHER_LEAVE_TABLE_NTF",
                     "id": 12
+                },
+                {
+                    "name": "OTHER_ACTION_NTF",
+                    "id": 13
                 }
             ]
         },

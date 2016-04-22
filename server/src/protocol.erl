@@ -30,6 +30,8 @@ decode(Bin) ->
       messages_pb:decode_otherjointablentf(Data);
     #message{type = 'OTHER_LEAVE_TABLE_NTF', data = Data} ->
       messages_pb:decode_otherleavetablentf(Data);
+    #message{type = 'OTHER_ACTION_NTF', data = Data} ->
+      messages_pb:decode_otheractionntf(Data);
     _Other ->
       error
   end.
@@ -61,6 +63,8 @@ encode(Msg) ->
       messages_pb:encode(#message{type = 'OTHER_JOIN_TABLE_NTF', data = Encoded});
     #otherleavetablentf{} ->
       messages_pb:encode(#message{type = 'OTHER_LEAVE_TABLE_NTF', data = Encoded});
+    #otheractionntf{} ->
+      messages_pb:encode(#message{type = 'OTHER_ACTION_NTF', data = Encoded});
     _Other ->
       error
   end.

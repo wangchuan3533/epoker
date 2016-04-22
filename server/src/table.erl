@@ -25,7 +25,8 @@
   waiting_players = [],
   playing_players = [],
   game = undefined,
-  buyin = 1000
+  buyin = 1000,
+  timer
 }).
 
 
@@ -49,31 +50,25 @@ this() ->
 %% gen_fsm.
 
 init([{Id, Lobby}]) ->
-	{ok, waiting, #state{id = Id, lobby = Lobby}}.
+  {ok, Timer} = timer:send_interval(1000, self(), tick),
+  {ok, waiting, #state{id = Id, lobby = Lobby, timer = Timer}}.
 
 waiting(_Event, StateData) ->
-	{next_state, waiting, StateData}.
+  {next_state, waiting, StateData}.
 
-waiting(start, _From, StateData = #state{waiting_players = WaitingPlayers}) ->
-  if length(WaitingPlayers) >= ?MIN_PLAYERS ->
-    Game = game:new({WaitingPlayers, this()}),
-    {reply, ok, playing, StateData#state{waiting_players = [], playing_players = WaitingPlayers, game = Game}};
-  true ->
-    {reply, ok, waiting, StateData}
-  end;
 waiting(Event, From, StateData) ->
   handle_sync_event(Event, From, waiting, StateData).
 
 playing(_Event, StateData) ->
-	{next_state, playing, StateData}.
+  {next_state, playing, StateData}.
 
 playing(#g2t_finished{game = Game}, _From, StateData = #state{waiting_players = WaitingPlayers, playing_players = PlayingPlayers, game = Game}) ->
-	{reply, ok, waiting, StateData#state{waiting_players = WaitingPlayers ++ PlayingPlayers, playing_players = [], game = undefined}};
+  {reply, ok, waiting, StateData#state{waiting_players = WaitingPlayers ++ PlayingPlayers, playing_players = [], game = undefined}};
 playing(Event, From, StateData) ->
   handle_sync_event(Event, From, playing, StateData).
-
-handle_event(_Event, StateName, StateData) ->
-	{next_state, StateName, StateData}.
+handle_event(Event, StateName, StateData) ->
+  ok = io:format("event ~p~n", [Event]),
+  {next_state, StateName, StateData}.
 
 %% add player
 handle_sync_event(#p2t_join{player = Player, id = PlayerId, name = PlayerName, chips = PlayerChips}, _From, StateName, StateData = #state{id = Id, lobby = Lobby, playing_players = PlayingPlayers, waiting_players = WaitingPlayers, buyin = BuyIn}) ->
@@ -84,7 +79,7 @@ handle_sync_event(#p2t_join{player = Player, id = PlayerId, name = PlayerName, c
       {reply, full, StateName, StateData};
     true ->
       ok = if length(PlayingPlayers) + length(WaitingPlayers) == ?MAX_PLAYERS - 1 ->
-        Lobby:call(#t2l_table_full{table_id = Id});
+        ok = Lobby:call(#t2l_table_full{table_id = Id});
       true -> ok
       end,
       %% notify other players
@@ -120,21 +115,31 @@ handle_sync_event(#p2t_leave{player = Player}, _From, StateName, StateData = #st
 
 %% dump
 handle_sync_event(dump, _From, StateName, StateData) ->
-	{reply, {StateName, StateData}, StateName, StateData};
+  {reply, {StateName, StateData}, StateName, StateData};
 
 handle_sync_event(_Event, _From, StateName, StateData) ->
-	{reply, ignored, StateName, StateData}.
+  {reply, ignored, StateName, StateData}.
 
-handle_info(_Info, StateName, StateData) ->
-	{next_state, StateName, StateData}.
+handle_info(tick, waiting, StateData = #state{waiting_players = WaitingPlayers}) ->
+  if length(WaitingPlayers) >= ?MIN_PLAYERS ->
+    Game = game:new({WaitingPlayers, this()}),
+    {next_state, playing, StateData#state{waiting_players = [], playing_players = WaitingPlayers, game = Game}};
+  true ->
+    io:format("not enough players~n"),
+    {next_state, waiting, StateData}
+  end;
+
+handle_info(Info, StateName, StateData) ->
+  ok = io:format("info ~p~n", [Info]),
+  {next_state, StateName, StateData}.
 
 terminate(Reason, _StateName, #state{id = Id, lobby = Lobby}) ->
   ok = io:format("table ~p stoped for reason ~p~n", [this(), Reason]),
   ok = Lobby:cast(#t2l_table_stopped{table_id = Id}),
-	ok.
+  ok.
 
 code_change(_OldVsn, StateName, StateData, _Extra) ->
-	{ok, StateName, StateData}.
+  {ok, StateName, StateData}.
 
 %% tests
 dump(#table{pid = Pid}) ->

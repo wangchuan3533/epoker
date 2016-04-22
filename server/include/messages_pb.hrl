@@ -93,6 +93,15 @@
 }).
 -endif.
 
+-ifndef(OTHERACTIONNTF_PB_H).
+-define(OTHERACTIONNTF_PB_H, true).
+-record(otheractionntf, {
+    id = erlang:error({required, id}),
+    action = erlang:error({required, action}),
+    amount = erlang:error({required, amount})
+}).
+-endif.
+
 -ifndef(PLAYERPB_PB_H).
 -define(PLAYERPB_PB_H, true).
 -record(playerpb, {

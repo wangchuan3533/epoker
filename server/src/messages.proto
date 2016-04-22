@@ -1,21 +1,22 @@
 enum MessageType {
     JOIN_TABLE_REQ = 1;
     JOIN_TABLE_RES = 2;
-    
+
     LEAVE_TABLE_REQ = 3;
     LEAVE_TABLE_RES = 4;
-    
+
     LIST_TABLE_REQ = 5;
     LIST_TABLE_RES = 6;
-    
+
     LEAVE_GAME_REQ = 7;
     LEAVE_GAME_RES = 8;
-    
+
     ACTION_REQ = 9;
     ACTION_RES = 10;
-    
+
     OTHER_JOIN_TABLE_NTF = 11;
     OTHER_LEAVE_TABLE_NTF = 12;
+    OTHER_ACTION_NTF = 13;
 }
 
 message Message {
@@ -74,6 +75,12 @@ message OtherJoinTableNtf {
 
 message OtherLeaveTableNtf {
   required string id = 1;
+}
+
+message OtherActionNtf {
+  required string id = 1;
+  required ActionType action = 2;
+  required uint32 amount = 3;
 }
 
 message PlayerPb {
