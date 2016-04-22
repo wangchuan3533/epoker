@@ -145,7 +145,7 @@
                 {
                     "rule": "required",
                     "type": "string",
-                    "name": "id",
+                    "name": "player_id",
                     "id": 1
                 }
             ]
@@ -156,7 +156,7 @@
                 {
                     "rule": "required",
                     "type": "string",
-                    "name": "id",
+                    "name": "player_id",
                     "id": 1
                 },
                 {

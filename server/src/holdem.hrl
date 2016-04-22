@@ -15,7 +15,6 @@
 -record(player, {pid}).
 -record(lobby, {pid}).
 -record(player_db, {id, password, name, chips = ?INIT_CHIPS}).
--record(player_in_table, {player, pb}).
 
 %% protocols
 
@@ -31,7 +30,6 @@
 -record(p2l_list_tables, {}).
 
 %% table to player protocols
-
 -record(t2p_join, {player}).
 -record(t2p_leave, {player}).
 -record(t2p_chat, {player, text}).

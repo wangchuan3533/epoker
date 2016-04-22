@@ -74,11 +74,11 @@ message OtherJoinTableNtf {
 }
 
 message OtherLeaveTableNtf {
-  required string id = 1;
+  required string player_id = 1;
 }
 
 message OtherActionNtf {
-  required string id = 1;
+  required string player_id = 1;
   required ActionType action = 2;
   required uint32 amount = 3;
 }

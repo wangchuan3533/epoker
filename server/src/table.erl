@@ -24,15 +24,38 @@
   lobby,
   waiting_players = [],
   playing_players = [],
-  game = undefined,
+  game_state,
+  game,
   buyin = 1000,
   timer
+}).
+
+-record(game_state, {
+  stage,
+  not_talked = [],
+  talked = [],
+  all_ined = [],
+  folded = [],
+  table,
+  deck,
+  pots = [],
+  cards = [],
+  bet = 0
+}).
+
+-record(player_in_table, {
+  player,
+  id,
+  name,
+  chips,
+  cards = [],
+  bet = 0
 }).
 
 
 %% API.
 new(Opts) ->
-  {ok, Pid} = gen_fsm:start_link(?MODULE, [Opts], []),
+  {ok, Pid} = gen_fsm:start_link(?MODULE, Opts, []),
   #table{pid = Pid}.
 
 stop(#table{pid = Pid}) ->
@@ -49,9 +72,9 @@ this() ->
 
 %% gen_fsm.
 
-init([{Id, Lobby}]) ->
+init({Id, Lobby}) ->
   {ok, Timer} = timer:send_interval(1000, self(), tick),
-  {ok, waiting, #state{id = Id, lobby = Lobby, timer = Timer}}.
+  {ok, waiting, #state{id = Id, lobby = Lobby, timer = Timer, game_state = #game_state{}}}.
 
 waiting(_Event, StateData) ->
   {next_state, waiting, StateData}.
@@ -85,11 +108,10 @@ handle_sync_event(#p2t_join{player = Player, id = PlayerId, name = PlayerName, c
       %% notify other players
       PlayerPb = #playerpb{id = PlayerId, name = PlayerName, chips = BuyIn},
       OtherJoinTableNtf = #otherjointablentf{player = PlayerPb},
-      Message = #message{type = 'OTHER_JOIN_TABLE_NTF', data = OtherJoinTableNtf},
-      [ok = P:notice(Message) || #player_in_table{player = P} <- lists:append(PlayingPlayers, WaitingPlayers)],
-      PlayerInTable = #player_in_table{player = Player, pb = PlayerPb},
+      [ok = P:notice(OtherJoinTableNtf) || #player_in_table{player = P} <- lists:append(PlayingPlayers, WaitingPlayers)],
+      PlayerInTable = #player_in_table{player = Player, id = PlayerId, name = PlayerName, chips = BuyIn},
       WaitingPlayers1 = [PlayerInTable | WaitingPlayers],
-      {reply, {ok, {Id, [PlayerPb1 ||#player_in_table{pb = PlayerPb1} <- lists:append(PlayingPlayers, WaitingPlayers1)], BuyIn}}, StateName, StateData#state{waiting_players = WaitingPlayers1}}
+      {reply, {ok, {Id, [#playerpb{id = PlayerId1, name = PlayerName1, chips = PlayerChips1} || #player_in_table{id = PlayerId1, name = PlayerName1, chips = PlayerChips1} <- lists:append(PlayingPlayers, WaitingPlayers1)], BuyIn}}, StateName, StateData#state{waiting_players = WaitingPlayers1}}
     end
   end;
 
@@ -102,11 +124,17 @@ handle_sync_event(#p2t_leave{player = Player}, _From, StateName, StateData = #st
       ok
   end,
   case lists:keytake(Player, #player_in_table.player, PlayingPlayers) of
-    {value, #player_in_table{player = Player, pb = #playerpb{id = _Id, name = _Name, chips = Chips}}, PlayingPlayers1} ->
+    {value, #player_in_table{player = Player, id = PlayerId, name = _Name, chips = Chips}, PlayingPlayers1} ->
+      % notify other players
+      OtherLeaveTableNtf = #otherleavetablentf{player_id = PlayerId},
+      [ok = P:notice(OtherLeaveTableNtf) || #player_in_table{player = P} <- lists:append(PlayingPlayers1, WaitingPlayers)],
       {reply, {ok, Chips}, StateName, StateData#state{playing_players = PlayingPlayers1}};
     false ->
       case lists:keytake(Player, #player_in_table.player, WaitingPlayers) of
-        {value, #player_in_table{player = Player, pb = #playerpb{id = _Id, name = _Name, chips = Chips}}, WaitingPlayers1} ->
+        {value, #player_in_table{player = Player, id = PlayerId, name = _Name, chips = Chips}, WaitingPlayers1} ->
+          % notify other players
+          OtherLeaveTableNtf = #otherleavetablentf{player_id = PlayerId},
+          [ok = P:notice(OtherLeaveTableNtf) || #player_in_table{player = P} <- lists:append(WaitingPlayers1, PlayingPlayers)],
           {reply, {ok, Chips}, StateName, StateData#state{waiting_players = WaitingPlayers1}};
         false ->
           {reply, not_in_table, StateName, StateData}
@@ -122,22 +150,20 @@ handle_sync_event(_Event, _From, StateName, StateData) ->
 
 handle_info(tick, waiting, StateData = #state{waiting_players = WaitingPlayers}) ->
   if length(WaitingPlayers) >= ?MIN_PLAYERS ->
-    ok = io:format("before start ~p~n", [WaitingPlayers]),
     Game = game:new({[Player || #player_in_table{player = Player} <- WaitingPlayers], this()}),
-    ok = io:format("after start ~n"),
     {next_state, playing, StateData#state{waiting_players = [], playing_players = WaitingPlayers, game = Game}};
   true ->
     io:format("not enough players~n"),
     {next_state, waiting, StateData}
   end;
 
-handle_info(Info, StateName, StateData) ->
-  ok = io:format("info ~p~n", [Info]),
+handle_info(_Info, StateName, StateData) ->
   {next_state, StateName, StateData}.
 
-terminate(Reason, _StateName, #state{id = Id, lobby = Lobby}) ->
+terminate(Reason, _StateName, #state{id = Id, lobby = Lobby, timer = Timer}) ->
   ok = io:format("table ~p stoped for reason ~p~n", [this(), Reason]),
   ok = Lobby:cast(#t2l_table_stopped{table_id = Id}),
+  {ok, cancel} = timer:cancel(Timer),
   ok.
 
 code_change(_OldVsn, StateName, StateData, _Extra) ->

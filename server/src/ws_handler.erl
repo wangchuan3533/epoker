@@ -44,7 +44,8 @@ websocket_handle(_Frame, Req, State) ->
   {ok, Req, State}.
 
 websocket_info({notice, Message}, Req, State) ->
-  {reply, {binary, messages_pb:encode(Message)}, Req, State};
+  ok = io:format("notice ~p~n", [{debug, Message}]),
+  {reply, {binary, protocol:encode(Message)}, Req, State};
 websocket_info(_Info, Req, State) ->
   {ok, Req, State}.
 

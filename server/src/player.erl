@@ -125,6 +125,7 @@ terminate(Reason, StateName, #state{table = Table, game = Game, player_db = Play
       Chips1;
     in_table ->
       {ok, Chips1} = Table:call(#p2t_leave{player = this()}),
+      ok = io:format("leave table called~n"),
       Chips1;
     in_lobby ->
       0

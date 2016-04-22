@@ -89,14 +89,14 @@
 -ifndef(OTHERLEAVETABLENTF_PB_H).
 -define(OTHERLEAVETABLENTF_PB_H, true).
 -record(otherleavetablentf, {
-    id = erlang:error({required, id})
+    player_id = erlang:error({required, player_id})
 }).
 -endif.
 
 -ifndef(OTHERACTIONNTF_PB_H).
 -define(OTHERACTIONNTF_PB_H, true).
 -record(otheractionntf, {
-    id = erlang:error({required, id}),
+    player_id = erlang:error({required, player_id}),
     action = erlang:error({required, action}),
     amount = erlang:error({required, amount})
 }).

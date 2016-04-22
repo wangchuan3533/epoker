@@ -8,7 +8,6 @@ start(_Type, _Args) ->
   {ok, _Pid} = lobby:start_link(),
   Dispatch = cowboy_router:compile([
     {'_', [
-      %%{"/", index_handler, []},
       {"/", index_handler, []},
       {"/ws/:token", ws_handler, []},
       {"/login", login_handler, []},

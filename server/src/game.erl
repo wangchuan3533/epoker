@@ -89,24 +89,24 @@ card_num(flop) -> 3;
 card_num(turn) -> 4;
 card_num(river) -> 5.
 
-next(preflop) -> flop;
-next(flop) -> turn;
-next(turn) -> river;
-next(river) -> finished.
+next_stage(preflop) -> flop;
+next_stage(flop) -> turn;
+next_stage(turn) -> river;
+next_stage(river) -> finished.
 
 next(StateName, StateData = #state{not_talked = NotTalked}) when length(NotTalked) > 0 ->
-  {StateName, StateData};
+  {reply, ok, StateName, StateData};
 
 next(StateName, StateData = #state{talked = Talked, folded = Folded, all_ined = AllIned, pots = Pots, cards = Cards, deck = Deck}) when length(Talked) > 1 ->
   case StateName of
-    finished -> {finished, StateData};
+    finished -> {stop, finished, ok, StateData};
     river -> showdown(StateName, StateData);
     _ ->
       %% collect pots and go to next round
       {Pots1, {Talked1, Folded1, AllIned1}} = collect_all(Pots, {Talked, Folded, AllIned}),
-      NewStateName = next(StateName),
+      NewStateName = next_stage(StateName),
       NewCards = lists:append(Cards, [Deck:call(get) || _ <- lists:seq(1, card_num(NewStateName) - card_num(StateName))]),
-      {NewStateName, StateData#state{not_talked = lists:reverse(Talked1), talked = [], folded = Folded1, all_ined = AllIned1, bet = 0, pots = Pots1, cards = NewCards}}
+      {reply, ok, NewStateName, StateData#state{not_talked = lists:reverse(Talked1), talked = [], folded = Folded1, all_ined = AllIned1, bet = 0, pots = Pots1, cards = NewCards}}
   end;
 
 next(StateName, StateData = #state{talked = Talked, all_ined = AllIned}) when length(Talked) + length(AllIned) > 1 ->
@@ -122,11 +122,11 @@ next(_StataName, StateData = #state{talked = Talked, folded = Folded, all_ined =
       {Talked1, [Winner#seat{chips = Chips + lists:foldl(fun(Pot, Sum) -> Pot + Sum end, 0, Pots1)}]}
   end,
   ok = io:format("game finished with results ~p~n", [StateData#state{talked = Talked2, folded = Folded1, all_ined = AllIned2, pots = []}]),
-  {finished, StateData#state{talked = Talked2, folded = Folded1, all_ined = AllIned2, pots = []}};
+  {stop, finished, ok, StateData#state{talked = Talked2, folded = Folded1, all_ined = AllIned2, pots = []}};
 
 next(_StataName, StateData = #state{talked = [], all_ined = []}) ->
   ok = io:format("no winner ~n"),
-  {finished, StateData};
+  {stop, finished, ok, StateData};
 
 next(StateName, StateData) ->
   {StateName, StateData}.
@@ -136,10 +136,9 @@ showdown(StateName, StateData = #state{cards = Cards, deck = Deck}) ->
   NewStateName = river,
   NewCards = lists:append(Cards, [Deck:call(get) || _ <- lists:seq(1, card_num(NewStateName) - card_num(StateName))]),
   ok = io:format("showdown from ~p data ~p ~n", [StateName, StateData]),
-  {finished, StateData#state{cards = NewCards}}.
+  {stop, finished, ok, StateData#state{cards = NewCards}}.
 %%
 init([{Players, Table}]) ->
-  ok = io:format("~p~n", [{Players, Table}]),
   ok = lists:foreach(fun(Player) ->
     ok = Player:call(#g2p_started{game = this()})
   end, Players),
@@ -194,9 +193,9 @@ river(Event, From, StateData) ->
   handle_sync_event(Event, From, river, StateData).
 
 finished(_Event, StateData) ->
-  {next_state, finished, StateData}.
-finished(Event, From, StateData) ->
-  handle_sync_event(Event, From, finished, StateData).
+  {stop, finished, StateData}.
+finished(_Event, _From, StateData) ->
+  {stop, finished, ok, StateData}.
 
 handle_action(#p2g_action{player = Player, action = ?ACTION_FOLD}, StateName, StateData = #state{not_talked = NotTalked, talked = Talked, folded = Folded, all_ined = AllIned}) ->
   ok = io:format("player ~w foled, not_talked: ~w, talked: ~w, folded: ~w, all_ined: ~w~n", [Player, NotTalked, Talked, Folded, AllIned]),
@@ -208,14 +207,12 @@ handle_action(#p2g_action{player = Player, action = ?ACTION_FOLD}, StateName, St
         Seat = #seat{} ->
           NewTalked = lists:delete(Seat, Talked),
           NewFolded = [Seat | Folded],
-          {NewStateName, NewStateData} = next(StateName, StateData#state{talked = NewTalked, folded = NewFolded}),
-          {reply, ok, NewStateName, NewStateData};
+          next(StateName, StateData#state{talked = NewTalked, folded = NewFolded});
         false -> case lists:keyfind(Player, #seat.player, NotTalked) of
           Seat = #seat{} ->
             NewNotTalked = lists:delete(Seat, NotTalked),
             NewFolded = [Seat | Folded],
-            {NewStateName, NewStateData} = next(StateName, StateData#state{not_talked = NewNotTalked, folded = NewFolded}),
-            {reply, ok, NewStateName, NewStateData};
+            next(StateName, StateData#state{not_talked = NewNotTalked, folded = NewFolded});
           false ->
             {reply, ok, not_in_game, StateData}
         end
@@ -234,14 +231,12 @@ handle_action(#p2g_action{player = Player, action = ?ACTION_RAISE, amount = Amou
       NewNextTalk = NextTalk#seat{chips = NextTalkChips - BetCost, bet = NewBet},
       NewTalked = [NewNextTalk],
       NewNotTalked = lists:append(OtherNotTalked, lists:reverse(Talked)),
-      {NewStateName, NewStateData} = next(StateName, StateData#state{talked = NewTalked, not_talked = NewNotTalked, bet = NewBet}),
-      {reply, ok, NewStateName, NewStateData};
+      next(StateName, StateData#state{talked = NewTalked, not_talked = NewNotTalked, bet = NewBet});
     NextTalkChips == BetCost -> %% all in
       NewNextTalk = NextTalk#seat{chips = NextTalkChips - BetCost, bet = NewBet},
       NewAllIned = [NewNextTalk | AllIned],
       NewNotTalked = lists:append(OtherNotTalked, lists:reverse(Talked)),
-      {NewStateName, NewStateData} = next(StateName, StateData#state{talked = [], not_talked = NewNotTalked, all_ined = NewAllIned, bet = NewBet}),
-      {reply, ok, NewStateName, NewStateData};
+      next(StateName, StateData#state{talked = [], not_talked = NewNotTalked, all_ined = NewAllIned, bet = NewBet});
     true -> %% NextTalkChips < BetCost
       {reply, no_enough_chips, StateName, StateData}
     end;
@@ -258,13 +253,11 @@ handle_action(#p2g_action{player = Player, action = ?ACTION_RAISE, amount = 0}, 
     if NextTalkChips > BetCost ->
       NewNextTalk = NextTalk#seat{chips = NextTalkChips - BetCost, bet = Bet},
       NewTalked = [NewNextTalk | Talked],
-      {NewStateName, NewStateData} = next(StateName, StateData#state{talked = NewTalked, not_talked = OtherNotTalked, bet = Bet}),
-      {reply, ok, NewStateName, NewStateData};
+      next(StateName, StateData#state{talked = NewTalked, not_talked = OtherNotTalked, bet = Bet});
     true -> %% NextTalkChips <= BetCost
       NewNextTalk = NextTalk#seat{chips = 0, bet = NextTalkBet + NextTalkChips},
       NewAllIned = [NewNextTalk | AllIned],
-      {NewStateName, NewStateData} = next(StateName, StateData#state{all_ined = NewAllIned, not_talked = OtherNotTalked, bet = Bet}),
-      {reply, ok, NewStateName, NewStateData}
+      next(StateName, StateData#state{all_ined = NewAllIned, not_talked = OtherNotTalked, bet = Bet})
     end;
   true -> %% Player != NextTalkPlayer
     {reply, ignored, StateName, StateData}
