@@ -139,6 +139,7 @@ showdown(StateName, StateData = #state{cards = Cards, deck = Deck}) ->
   {finished, StateData#state{cards = NewCards}}.
 %%
 init([{Players, Table}]) ->
+  ok = io:format("~p~n", [{Players, Table}]),
   ok = lists:foreach(fun(Player) ->
     ok = Player:call(#g2p_started{game = this()})
   end, Players),
@@ -162,38 +163,38 @@ init([{Players, Table}]) ->
   %% preflop cards
   Deck = deck:new(),
   Seats4 = [Seat#seat{cards = [Deck:call(get), Deck:call(get)]} || Seat <- Seats3],
-	{ok, preflop, #state{not_talked = Seats4, table = Table, deck = Deck, bet = ?BIG_BLIND, pots = [0]}}.
+  {ok, preflop, #state{not_talked = Seats4, table = Table, deck = Deck, bet = ?BIG_BLIND, pots = [0]}}.
 
 preflop(_Event, StateData) ->
-	{next_state, preflop, StateData}.
+  {next_state, preflop, StateData}.
 preflop(Action = #p2g_action{}, _From, StateData) ->
   handle_action(Action, preflop, StateData);
 preflop(Event, From, StateData) ->
   handle_sync_event(Event, From, preflop, StateData).
 
 flop(_Event, StateData) ->
-	{next_state, flop, StateData}.
+  {next_state, flop, StateData}.
 flop(Action = #p2g_action{}, _From, StateData) ->
   handle_action(Action, flop, StateData);
 flop(Event, From, StateData) ->
   handle_sync_event(Event, From, flop, StateData).
 
 turn(_Event, StateData) ->
-	{next_state, turn, StateData}.
+  {next_state, turn, StateData}.
 turn(Action = #p2g_action{}, _From, StateData) ->
   handle_action(Action, turn, StateData);
 turn(Event, From, StateData) ->
   handle_sync_event(Event, From, turn, StateData).
 
 river(_Event, StateData) ->
-	{next_state, river, StateData}.
+  {next_state, river, StateData}.
 river(Action = #p2g_action{}, _From, StateData) ->
   handle_action(Action, river, StateData);
 river(Event, From, StateData) ->
   handle_sync_event(Event, From, river, StateData).
 
 finished(_Event, StateData) ->
-	{next_state, finished, StateData}.
+  {next_state, finished, StateData}.
 finished(Event, From, StateData) ->
   handle_sync_event(Event, From, finished, StateData).
 
@@ -234,15 +235,15 @@ handle_action(#p2g_action{player = Player, action = ?ACTION_RAISE, amount = Amou
       NewTalked = [NewNextTalk],
       NewNotTalked = lists:append(OtherNotTalked, lists:reverse(Talked)),
       {NewStateName, NewStateData} = next(StateName, StateData#state{talked = NewTalked, not_talked = NewNotTalked, bet = NewBet}),
-	    {reply, ok, NewStateName, NewStateData};
+      {reply, ok, NewStateName, NewStateData};
     NextTalkChips == BetCost -> %% all in
       NewNextTalk = NextTalk#seat{chips = NextTalkChips - BetCost, bet = NewBet},
       NewAllIned = [NewNextTalk | AllIned],
       NewNotTalked = lists:append(OtherNotTalked, lists:reverse(Talked)),
       {NewStateName, NewStateData} = next(StateName, StateData#state{talked = [], not_talked = NewNotTalked, all_ined = NewAllIned, bet = NewBet}),
-	    {reply, ok, NewStateName, NewStateData};
+      {reply, ok, NewStateName, NewStateData};
     true -> %% NextTalkChips < BetCost
-	    {reply, no_enough_chips, StateName, StateData}
+      {reply, no_enough_chips, StateName, StateData}
     end;
   true -> %% Player != NextTalkPlayer
     {reply, ignored, StateName, StateData}
@@ -258,29 +259,29 @@ handle_action(#p2g_action{player = Player, action = ?ACTION_RAISE, amount = 0}, 
       NewNextTalk = NextTalk#seat{chips = NextTalkChips - BetCost, bet = Bet},
       NewTalked = [NewNextTalk | Talked],
       {NewStateName, NewStateData} = next(StateName, StateData#state{talked = NewTalked, not_talked = OtherNotTalked, bet = Bet}),
-	    {reply, ok, NewStateName, NewStateData};
+      {reply, ok, NewStateName, NewStateData};
     true -> %% NextTalkChips <= BetCost
       NewNextTalk = NextTalk#seat{chips = 0, bet = NextTalkBet + NextTalkChips},
       NewAllIned = [NewNextTalk | AllIned],
       {NewStateName, NewStateData} = next(StateName, StateData#state{all_ined = NewAllIned, not_talked = OtherNotTalked, bet = Bet}),
-	    {reply, ok, NewStateName, NewStateData}
+      {reply, ok, NewStateName, NewStateData}
     end;
   true -> %% Player != NextTalkPlayer
     {reply, ignored, StateName, StateData}
   end.
 
 handle_event(_Event, StateName, StateData) ->
-	{next_state, StateName, StateData}.
+  {next_state, StateName, StateData}.
 
 %% dump
 handle_sync_event(dump, _From, StateName, StateData) ->
-	{reply, {StateName, StateData}, StateName, StateData};
+  {reply, {StateName, StateData}, StateName, StateData};
 
 handle_sync_event(_Event, _From, StateName, StateData) ->
-	{reply, ignored, StateName, StateData}.
+  {reply, ignored, StateName, StateData}.
 
 handle_info(_Info, StateName, StateData) ->
-	{next_state, StateName, StateData}.
+  {next_state, StateName, StateData}.
 
 terminate(Reason, _StateName, #state{deck = Deck, table = Table, not_talked = NotTalked, talked = Talked, folded = Folded, all_ined = AllIned}) ->
   ok = io:format("game ~p stoped for reaseon ~p~n", [this(), Reason]),
@@ -292,7 +293,7 @@ terminate(Reason, _StateName, #state{deck = Deck, table = Table, not_talked = No
   ok.
 
 code_change(_OldVsn, StateName, StateData, _Extra) ->
-	{ok, StateName, StateData}.
+  {ok, StateName, StateData}.
 
 %% tests
 dump(#game{pid = Pid}) ->

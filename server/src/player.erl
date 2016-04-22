@@ -74,6 +74,7 @@ in_table(#leavetablereq{}, _From, StateData = #state{table = Table}) ->
   NewStateData = StateData#state{table = undefined},
   {reply, ok, in_lobby, NewStateData};
 in_table(#g2p_started{game = Game}, _From, StateData) ->
+  ok = io:format("g2p_started~n"),
   NewStateData = StateData#state{game = Game},
   {reply, ok, in_game, NewStateData};
 in_table(Event, From, StateData) ->

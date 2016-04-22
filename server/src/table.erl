@@ -122,7 +122,9 @@ handle_sync_event(_Event, _From, StateName, StateData) ->
 
 handle_info(tick, waiting, StateData = #state{waiting_players = WaitingPlayers}) ->
   if length(WaitingPlayers) >= ?MIN_PLAYERS ->
-    Game = game:new({WaitingPlayers, this()}),
+    ok = io:format("before start ~p~n", [WaitingPlayers]),
+    Game = game:new({[Player || #player_in_table{player = Player} <- WaitingPlayers], this()}),
+    ok = io:format("after start ~n"),
     {next_state, playing, StateData#state{waiting_players = [], playing_players = WaitingPlayers, game = Game}};
   true ->
     io:format("not enough players~n"),

@@ -12,7 +12,7 @@
 generate_uid() -> binary:list_to_bin(uuid:uuid_to_string(uuid:get_v4())).
 
 init(_, Req, _Opts) ->
-	{ok, Req, #state{}}.
+  {ok, Req, #state{}}.
 
 handle(Req, State=#state{}) ->
   {Method, Req2} = cowboy_req:method(Req),
@@ -49,4 +49,4 @@ handle(Req, State=#state{}) ->
   end.
 
 terminate(_Reason, _Req, _State) ->
-	ok.
+  ok.

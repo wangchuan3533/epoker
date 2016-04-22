@@ -38,10 +38,10 @@ this() ->
 
 %% gen_fsm.
 init([]) ->
-	{ok, available, #state{}}.
+  {ok, available, #state{}}.
 
 available(_Event, StateData) ->
-	{next_state, available, StateData}.
+  {next_state, available, StateData}.
 
 available(get, _From, StateData = #state{cards = Cards}) ->
   Index = random:uniform(length(Cards)),
@@ -50,32 +50,32 @@ available(get, _From, StateData = #state{cards = Cards}) ->
   NewStateData = StateData#state{cards = NewCards},
   case NewCards of
     [] ->
-	    {reply, finished, finished, NewStateData};
+      {reply, finished, finished, NewStateData};
     _ ->
-	    {reply, Card, available, NewStateData}
+      {reply, Card, available, NewStateData}
   end.
 
 finished(_Event, StateData) ->
-	{next_state, finished, StateData}.
+  {next_state, finished, StateData}.
 
 finished(_Event, _From, StateData = #state{cards = []}) ->
-	{reply, finished, finished, StateData}.
+  {reply, finished, finished, StateData}.
 
 handle_event(_Event, StateName, StateData) ->
-	{next_state, StateName, StateData}.
+  {next_state, StateName, StateData}.
 
 handle_sync_event(_Event, _From, StateName, StateData) ->
-	{reply, ignored, StateName, StateData}.
+  {reply, ignored, StateName, StateData}.
 
 handle_info(_Info, StateName, StateData) ->
-	{next_state, StateName, StateData}.
+  {next_state, StateName, StateData}.
 
 terminate(Reason, _StateName, _StateData) ->
   io:format("deck ~p stoped for reaseon ~p~n", [this(), Reason]),
-	ok.
+  ok.
 
 code_change(_OldVsn, StateName, StateData, _Extra) ->
-	{ok, StateName, StateData}.
+  {ok, StateName, StateData}.
 
 %% test
 test() -> ok.

@@ -22,9 +22,9 @@
 
 %% API.
 start_link() ->
-	gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+  gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 new() ->
-	{ok, Pid} = gen_server:start_link(?MODULE, [], []),
+  {ok, Pid} = gen_server:start_link(?MODULE, [], []),
   #lobby{pid = Pid}.
 
 call(Msg) ->
@@ -47,20 +47,20 @@ this() ->
 
 %% gen_server behaviour
 init([]) ->
-	{ok, #state{full_tables = ets:new(full_tables, [set]), not_full_tables = ets:new(not_full_tables, [set]), max_table_id = 0}}.
+  {ok, #state{full_tables = ets:new(full_tables, [set]), not_full_tables = ets:new(not_full_tables, [set]), max_table_id = 0}}.
 
 handle_call(#p2l_list_tables{}, _From, State = #state{full_tables = FullTables, not_full_tables = NotFullTables}) ->
-	{reply, ets:tab2list(NotFullTables) ++ ets:tab2list(FullTables), State};
+  {reply, ets:tab2list(NotFullTables) ++ ets:tab2list(FullTables), State};
 
 handle_call(#p2l_get_table{table_id = -1}, _From, State = #state{not_full_tables = NotFullTables, max_table_id = MaxTableId}) ->
   case ets:first(NotFullTables) of
     '$end_of_table' ->
       Entry = {MaxTableId, table:new({MaxTableId, this()})},
       true = ets:insert(NotFullTables, Entry),
-	    {reply, {ok, Entry}, State#state{max_table_id = MaxTableId + 1}};
+      {reply, {ok, Entry}, State#state{max_table_id = MaxTableId + 1}};
     TableId ->
       [Entry] = ets:lookup(NotFullTables, TableId),
-	    {reply, {ok, Entry}, State}
+      {reply, {ok, Entry}, State}
   end;
 handle_call(#p2l_get_table{table_id = TableId}, _From, State = #state{full_tables = FullTables, not_full_tables = NotFullTables}) ->
   Ret = case ets:lookup(FullTables, TableId) ++ ets:lookup(NotFullTables, TableId) of
@@ -71,33 +71,33 @@ handle_call(#p2l_get_table{table_id = TableId}, _From, State = #state{full_table
     _ ->
       more_than_one_table
   end,
-	{reply, Ret, State};
+  {reply, Ret, State};
 
 handle_call(#t2l_table_full{table_id = TableId}, _From, State = #state{full_tables = FullTables, not_full_tables = NotFullTables}) ->
   [Entry] = ets:take(NotFullTables, TableId),
   true = ets:insert(FullTables, Entry),
-	{reply, ok, State};
+  {reply, ok, State};
 handle_call(#t2l_table_not_full{table_id = TableId}, _From, State = #state{full_tables = FullTables, not_full_tables = NotFullTables}) ->
   [Entry] = ets:take(FullTables, TableId),
   true = ets:insert(NotFullTables, Entry),
-	{reply, ok, State};
+  {reply, ok, State};
 
 
 handle_call(dump, _From, State = #state{full_tables = FullTables, not_full_tables = NotFullTables, max_table_id = MaxTableId}) ->
   {reply, {ets:tab2list(FullTables), ets:tab2list(NotFullTables), MaxTableId}, State};
 handle_call(_Request, _From, State) ->
-	{reply, ignored, State}.
+  {reply, ignored, State}.
 
 handle_cast(#t2l_table_stopped{table_id = TableId}, State = #state{full_tables = FullTables, not_full_tables = NotFullTables}) ->
   true = ets:delete(FullTables, TableId),
   true = ets:delete(NotFullTables, TableId),
-	{noreply, State};
+  {noreply, State};
 
 handle_cast(_Msg, State) ->
-	{noreply, State}.
+  {noreply, State}.
 
 handle_info(_Info, State) ->
-	{noreply, State}.
+  {noreply, State}.
 
 terminate(Reason, #state{full_tables = FullTables, not_full_tables = NotFullTables}) ->
   ok = io:format("lobby ~p stoped for reaseon ~p~n", [this(), Reason]),
@@ -112,10 +112,10 @@ terminate(Reason, #state{full_tables = FullTables, not_full_tables = NotFullTabl
     Table:stop()
   end, ok, NotFullTables),
   true = ets:delete_all_objects(NotFullTables),
-	ok.
+  ok.
 
 code_change(_OldVsn, State, _Extra) ->
-	{ok, State}.
+  {ok, State}.
 
 test() ->
   test_table_full().
