@@ -58,7 +58,7 @@ this() ->
 
 collect_by_bet(Bet, Seats) ->
   Collected = lists:foldl(fun(#seat{bet = Bet1}, Sum) -> Sum + min(Bet, Bet1) end, 0, Seats),
-  NewSeats = [Seat#seat{bet = Bet1 - min(Bet, Bet1)} || Seat = #seat{bet = Bet1} <- Seats],
+  NewSeats = [Seat#seat{bet = 0} || Seat = #seat{} <- Seats],
   {Collected, NewSeats}.
 
 collect_all(Pots, {Talked, Folded, AllIned}) ->
@@ -71,10 +71,7 @@ collect_all(Pots, {Talked, Folded, AllIned}) ->
     Pots1 = [Pot + Collected1 + Collected2 + Collected3 | OtherPots],
     {Pots1, {Talked1, Folded1, AllIned1}};
   true -> %% NewAllInedNum > 0
-    SortedAllIned = lists:keysort(#seat.bet, AllIned),
-    NewAllIned = lists:sublist(SortedAllIned, length(Pots), NewAllInedNum),
-
-    [FirstAllIn | _OtherAllIns] = NewAllIned,
+    FirstAllIn = lists:nth(AllIned, NewAllInedNum),
     Bet = FirstAllIn#seat.bet,
     {Collected1, Talked1} = collect_by_bet(Bet, Talked),
     {Collected2, Folded1} = collect_by_bet(Bet, Folded),
