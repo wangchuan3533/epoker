@@ -26,7 +26,7 @@
   seats = [],
   buyin = 1000,
   timer,
-  
+
   %% game state
   not_talked = [],
   talked = [],
@@ -144,7 +144,7 @@ showdown(StateName, StateData = #state{cards = Cards, deck = Deck}) ->
   NewCards = lists:append(Cards, [Deck:call(get) || _ <- lists:seq(1, card_num(NewStateName) - card_num(StateName))]),
   ok = io:format("showdown from ~p data ~p ~n", [StateName, StateData]),
   {stop, finished, ok, StateData#state{cards = NewCards}}.
-  
+
 init_game([{Players}]) ->
   ok = lists:foreach(fun(Player) ->
     ok = Player:call(#g2p_started{game = this()})
@@ -178,31 +178,31 @@ init({Id, Lobby}) ->
   {ok, waiting, #state{id = Id, lobby = Lobby, timer = Timer}}.
 
 waiting(start, StateData = #state{seats = Seats}) ->
-  if length(WaitingPlayers) < ?MIN_PLAYERS ->
+  if length(Seats) < ?MIN_PLAYERS ->
     io:format("not enough players~n"),
     {next_state, waiting, StateData};
   true ->
     %% notify player game started
     ok = lists:foreach(fun(#seat{player = Player}) ->
       ok = Player:call(#g2p_started{game = this()})
-    end, WaitingPlayers),
-    
+    end, Seats),
+
     %% first is dealer
     [H | T] = Seats,
     Seats1 = lists:append(T, [H]),
-    
+
     %% small blind
     [SmallBlindSeat | T1] = Seats1,
     Chips1 = SmallBlindSeat#seat.chips - ?SMALL_BLIND,
     NewSmallBlindSeat = SmallBlindSeat#seat{chips = Chips1, bet = ?SMALL_BLIND},
     Seats2 = lists:append(T1, [NewSmallBlindSeat]),
-    
+
     %% big blind
     [BigBlindSeat | T2] = Seats2,
     Chips2 = BigBlindSeat#seat.chips - ?BIG_BLIND,
     NewBigBlindSeat = BigBlindSeat#seat{chips = Chips2, bet = ?BIG_BLIND},
     Seats3 = lists:append(T2, [NewBigBlindSeat]),
-    
+
     %% preflop cards
     Deck = deck:new(),
     Seats4 = [Seat#seat{cards = [Deck:call(get), Deck:call(get)]} || Seat <- Seats3],
@@ -321,47 +321,39 @@ handle_sync_event(#p2t_join{player = Player, id = PlayerId, name = PlayerName, c
   if PlayerChips < BuyIn ->
     {reply, not_enough_chips, StateName, StateData};
   true ->
-    if length(PlayingPlayers) + length(WaitingPlayers) >= ?MAX_PLAYERS ->
+    if length(Seats) >= ?MAX_PLAYERS ->
       {reply, full, StateName, StateData};
     true ->
-      ok = if length(PlayingPlayers) + length(WaitingPlayers) == ?MAX_PLAYERS - 1 ->
+      ok = if length(Seats) == ?MAX_PLAYERS - 1 ->
         ok = Lobby:call(#t2l_table_full{table_id = Id});
       true -> ok
       end,
       %% notify other players
       PlayerPb = #playerpb{id = PlayerId, name = PlayerName, chips = BuyIn},
       OtherJoinTableNtf = #otherjointablentf{player = PlayerPb},
-      [ok = P:notice(OtherJoinTableNtf) || #seat{player = P} <- lists:append(PlayingPlayers, WaitingPlayers)],
-      PlayerInTable = #seat{player = Player, id = PlayerId, name = PlayerName, chips = BuyIn},
-      WaitingPlayers1 = [PlayerInTable | WaitingPlayers],
-      {reply, {ok, {Id, [#playerpb{id = PlayerId1, name = PlayerName1, chips = PlayerChips1} || #seat{id = PlayerId1, name = PlayerName1, chips = PlayerChips1} <- lists:append(PlayingPlayers, WaitingPlayers1)], BuyIn}}, StateName, StateData#state{waiting_players = WaitingPlayers1}}
+      [ok = P:notice(OtherJoinTableNtf) || #seat{player = P} <- Seats],
+      NewSeat = #seat{player = Player, id = PlayerId, name = PlayerName, chips = BuyIn},
+      NewSeats = [NewSeat | Seats],
+      {reply, {ok, {Id, [#playerpb{id = PlayerId1, name = PlayerName1, chips = PlayerChips1} || #seat{id = PlayerId1, name = PlayerName1, chips = PlayerChips1} <- NewSeats], BuyIn}}, StateName, StateData#state{seats = NewSeats}}
     end
   end;
 
 %% del player
-handle_sync_event(#p2t_leave{player = Player}, _From, StateName, StateData = #state{id = Id, lobby = Lobby, seats = Seats, waiting_players = WaitingPlayers}) ->
+handle_sync_event(#p2t_leave{player = Player}, _From, StateName, StateData = #state{id = Id, lobby = Lobby, seats = Seats}) ->
   ok = if
-    length(PlayingPlayers) + length(WaitingPlayers) == ?MAX_PLAYERS ->
+    length(Seats) == ?MAX_PLAYERS ->
       Lobby:call(#t2l_table_not_full{table_id = Id});
     true ->
       ok
   end,
-  case lists:keytake(Player, #seat.player, PlayingPlayers) of
-    {value, #seat{player = Player, id = PlayerId, name = _Name, chips = Chips}, PlayingPlayers1} ->
+  case lists:keytake(Player, #seat.player, Seats) of
+    {value, #seat{player = Player, id = PlayerId, name = _Name, chips = Chips}, NewSeats} ->
       % notify other players
       OtherLeaveTableNtf = #otherleavetablentf{player_id = PlayerId},
-      [ok = P:notice(OtherLeaveTableNtf) || #seat{player = P} <- lists:append(PlayingPlayers1, WaitingPlayers)],
-      {reply, {ok, Chips}, StateName, StateData#state{playing_players = PlayingPlayers1}};
+      [ok = P:notice(OtherLeaveTableNtf) || #seat{player = P} <- NewSeats],
+      {reply, {ok, Chips}, StateName, StateData#state{seats = NewSeats}};
     false ->
-      case lists:keytake(Player, #seat.player, WaitingPlayers) of
-        {value, #seat{player = Player, id = PlayerId, name = _Name, chips = Chips}, WaitingPlayers1} ->
-          % notify other players
-          OtherLeaveTableNtf = #otherleavetablentf{player_id = PlayerId},
-          [ok = P:notice(OtherLeaveTableNtf) || #seat{player = P} <- lists:append(WaitingPlayers1, PlayingPlayers)],
-          {reply, {ok, Chips}, StateName, StateData#state{waiting_players = WaitingPlayers1}};
-        false ->
-          {reply, not_in_table, StateName, StateData}
-      end
+      {reply, not_in_table, StateName, StateData}
   end;
 
 %% dump
@@ -390,53 +382,4 @@ dump(#table{pid = Pid}) ->
   gen_fsm:sync_send_all_state_event(Pid, dump).
 
 test() ->
-  test_join_leave(),
-  test_game_start().
-
-%% test
-test_join_leave() ->
-  Lobby = lobby:new(),
-  Table = table:new({0, Lobby}),
-  U1 = #player_db{id = 1, name = 1},
-  U2 = #player_db{id = 2, name = 2},
-  A = player:new({U1, Lobby}),
-  B = player:new({U2, Lobby}),
-  {waiting, #state{waiting_players = [], playing_players = [], game = undefined}} = Table:dump(),
-  {ok, {0, _}} = Table:call(#p2t_join{player = A}),
-  {waiting, #state{waiting_players = [A], playing_players = [], game = undefined}} = Table:dump(),
-  {ok, {0, _}} = Table:call(#p2t_join{player = B}),
-  {waiting, #state{waiting_players = [B, A], playing_players = [], game = undefined}} = Table:dump(),
-  ok = Table:call(#p2t_leave{player = B}),
-  {waiting, #state{waiting_players = [A], playing_players = [], game = undefined}} = Table:dump(),
-  ok = Table:call(#p2t_leave{player = A}),
-  {waiting, #state{waiting_players = [], playing_players = [], game = undefined}} = Table:dump(),
-  ok = B:stop(),
-  ok = A:stop(),
-  Table:stop(),
-  Lobby:stop().
-
-test_game_start() ->
-  Lobby = lobby:new(),
-  {ok, {TableId, Table}} = Lobby:call(#p2l_get_table{}),
-
-  U1 = #player_db{id = 1, name = 1},
-  U2 = #player_db{id = 2, name = 2},
-  U3 = #player_db{id = 3, name = 3},
-
-  A = player:new({U1, Lobby}),
-  B = player:new({U2, Lobby}),
-  C = player:new({U3, Lobby}),
-  {ok, {TableId, _}} = A:call(#jointablereq{table_id = TableId}),
-  {ok, {TableId, _}} = B:call(#jointablereq{table_id = TableId}),
-  ok = Table:call(start),
-  {playing, #state{waiting_players = [], playing_players = [B, A], game = Game = #game{}}} = Table:dump(),
-  {ok, {TableId, _}} = C:call(#jointablereq{table_id = 0}),
-  {preflop, _StateData} = Game:dump(),
-  {playing, #state{waiting_players = [C], playing_players = [B, A]}} = Table:dump(),
-  ok = Game:stop(),
-  {waiting, #state{waiting_players = [C, B, A], playing_players = []}} = Table:dump(),
-  ok = C:stop(),
-  ok = B:stop(),
-  ok = A:stop(),
-  Table:stop(),
-  Lobby:stop().
+  ok.

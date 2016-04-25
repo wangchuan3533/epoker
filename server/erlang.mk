@@ -4730,7 +4730,6 @@ define compile_proto
 	$(verbose) mkdir -p ebin/ include/
 	$(proto_verbose) $(call erlang,$(call compile_proto.erl,$(1)))
 	$(proto_verbose) erlc +debug_info -o ebin/ ebin/*.erl
-	$(verbose) rm ebin/*.erl
 endef
 
 define compile_proto.erl
