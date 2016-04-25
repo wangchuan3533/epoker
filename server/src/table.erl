@@ -23,10 +23,7 @@
 -record(state, {
   id,
   lobby,
-  waiting_players = [],
-  playing_players = [],
-  game_state,
-  game,
+  seats = [],
   buyin = 1000,
   timer,
   
@@ -180,13 +177,36 @@ init({Id, Lobby}) ->
   {ok, Timer} = timer:send_interval(1000, self(), tick),
   {ok, waiting, #state{id = Id, lobby = Lobby, timer = Timer}}.
 
-waiting(start, StateData = #state{waiting_players = WaitingPlayers}) ->
-  if length(WaitingPlayers) >= ?MIN_PLAYERS ->
-    Game = game:new({[Player || #seat{player = Player} <- WaitingPlayers], this()}),
-    {next_state, playing, StateData#state{waiting_players = [], playing_players = WaitingPlayers, game = Game}};
-  true ->
+waiting(start, StateData = #state{seats = Seats}) ->
+  if length(WaitingPlayers) < ?MIN_PLAYERS ->
     io:format("not enough players~n"),
-    {next_state, waiting, StateData}
+    {next_state, waiting, StateData};
+  true ->
+    %% notify player game started
+    ok = lists:foreach(fun(#seat{player = Player}) ->
+      ok = Player:call(#g2p_started{game = this()})
+    end, WaitingPlayers),
+    
+    %% first is dealer
+    [H | T] = Seats,
+    Seats1 = lists:append(T, [H]),
+    
+    %% small blind
+    [SmallBlindSeat | T1] = Seats1,
+    Chips1 = SmallBlindSeat#seat.chips - ?SMALL_BLIND,
+    NewSmallBlindSeat = SmallBlindSeat#seat{chips = Chips1, bet = ?SMALL_BLIND},
+    Seats2 = lists:append(T1, [NewSmallBlindSeat]),
+    
+    %% big blind
+    [BigBlindSeat | T2] = Seats2,
+    Chips2 = BigBlindSeat#seat.chips - ?BIG_BLIND,
+    NewBigBlindSeat = BigBlindSeat#seat{chips = Chips2, bet = ?BIG_BLIND},
+    Seats3 = lists:append(T2, [NewBigBlindSeat]),
+    
+    %% preflop cards
+    Deck = deck:new(),
+    Seats4 = [Seat#seat{cards = [Deck:call(get), Deck:call(get)]} || Seat <- Seats3],
+    {next_state, preflop, StateData#state{not_talked = Seats4, deck = Deck, bet = ?BIG_BLIND, pots = [0]}}
   end;
 waiting(Event, StateData) ->
   handle_event(Event, waiting, StateData).
@@ -292,19 +312,12 @@ handle_action(#p2g_action{player = Player, action = ?ACTION_RAISE, amount = 0}, 
     {reply, ignored, StateName, StateData}
   end.
 
-%playing(_Event, StateData) ->
-%  {next_state, playing, StateData}.
-%playing(#g2t_finished{game = Game}, _From, StateData = #state{waiting_players = WaitingPlayers, playing_players = PlayingPlayers, game = Game}) ->
-%  {reply, ok, waiting, StateData#state{waiting_players = WaitingPlayers ++ PlayingPlayers, playing_players = [], game = undefined}};
-%playing(Event, From, StateData) ->
-%  handle_sync_event(Event, From, playing, StateData).
-
 handle_event(Event, StateName, StateData) ->
   ok = io:format("event ~p~n", [Event]),
   {next_state, StateName, StateData}.
 
 %% add player
-handle_sync_event(#p2t_join{player = Player, id = PlayerId, name = PlayerName, chips = PlayerChips}, _From, StateName, StateData = #state{id = Id, lobby = Lobby, playing_players = PlayingPlayers, waiting_players = WaitingPlayers, buyin = BuyIn}) ->
+handle_sync_event(#p2t_join{player = Player, id = PlayerId, name = PlayerName, chips = PlayerChips}, _From, StateName, StateData = #state{id = Id, lobby = Lobby, seats = Seats, buyin = BuyIn}) ->
   if PlayerChips < BuyIn ->
     {reply, not_enough_chips, StateName, StateData};
   true ->
@@ -326,7 +339,7 @@ handle_sync_event(#p2t_join{player = Player, id = PlayerId, name = PlayerName, c
   end;
 
 %% del player
-handle_sync_event(#p2t_leave{player = Player}, _From, StateName, StateData = #state{id = Id, lobby = Lobby, playing_players = PlayingPlayers, waiting_players = WaitingPlayers}) ->
+handle_sync_event(#p2t_leave{player = Player}, _From, StateName, StateData = #state{id = Id, lobby = Lobby, seats = Seats, waiting_players = WaitingPlayers}) ->
   ok = if
     length(PlayingPlayers) + length(WaitingPlayers) == ?MAX_PLAYERS ->
       Lobby:call(#t2l_table_not_full{table_id = Id});
