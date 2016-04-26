@@ -21,18 +21,19 @@
 %% player to table protocols
 -record(p2t_join, {player, id, name, chips}).
 -record(p2t_leave, {player}).
-
-%% player to game protocols
--record(p2g_action, {player, action, amount = 0}).
+-record(p2t_action, {player, action, amount = 0}).
 
 %% player to lobby protocols
 -record(p2l_get_table, {table_id = -1}).
 -record(p2l_list_tables, {}).
 
 %% table to player protocols
--record(t2p_join, {player}).
--record(t2p_leave, {player}).
 -record(t2p_chat, {player, text}).
+-record(t2p_started, {}).
+-record(t2p_finished, {}).
+-record(t2p_action, {player, action, amount}).
+-record(t2p_reward, {reward}).
+-record(t2p_state_update, {state}).
 
 %% table to game protocols
 
@@ -40,13 +41,3 @@
 -record(t2l_table_full, {table_id}).
 -record(t2l_table_not_full, {table_id}).
 -record(t2l_table_stopped, {table_id}).
-
-%% game to player protocols
--record(g2p_started, {game}).
--record(g2p_finished, {game}).
--record(g2p_action, {player, action, amount}).
--record(g2p_reward, {reward}).
--record(g2p_state_update, {state}).
-
-%% game to talbe protocols
--record(g2t_finished, {game}).

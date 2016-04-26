@@ -5,7 +5,7 @@
 
 %% API.
 -export([new/1, stop/1, call/2, cast/2, notice/2]).
--export([dump/1, test/0]).
+-export([test/0]).
 
 %% gen_fsm.
 -export([init/1]).
@@ -21,7 +21,6 @@
   ws,
   lobby,
   table,
-  game,
   player_db,
   id,
   name,
@@ -73,26 +72,24 @@ in_table(#leavetablereq{}, _From, StateData = #state{table = Table}) ->
   ok = Table:call(#p2t_leave{player = this()}),
   NewStateData = StateData#state{table = undefined},
   {reply, ok, in_lobby, NewStateData};
-in_table(#g2p_started{game = Game}, _From, StateData) ->
-  ok = io:format("g2p_started~n"),
-  NewStateData = StateData#state{game = Game},
-  {reply, ok, in_game, NewStateData};
+in_table(#t2p_started{}, _From, StateData) ->
+  ok = io:format("t2p_started~n"),
+  {reply, ok, in_game, StateData};
 in_table(Event, From, StateData) ->
   handle_sync_event(Event, From, in_table, StateData).
 
 in_game(Event, StateData) ->
   handle_event(Event, in_game, StateData).
 
-in_game(#actionreq{action = Action, amount = Amount}, _From, StateData = #state{game = Game}) ->
-  Ret = Game:call(#p2g_action{player = this(), action = Action, amount = Amount}),
+in_game(#actionreq{action = Action, amount = Amount}, _From, StateData = #state{table = Table}) ->
+  Ret = Table:call(#p2t_action{player = this(), action = Action, amount = Amount}),
   {reply, Ret, in_game, StateData};
-in_game(#leavetablereq{}, _From, StateData = #state{game = Game}) ->
-  Game:call(#p2g_action{player = this(), action = ?ACTION_FOLD}),
-  NewStateData = StateData#state{game = undefined},
+in_game(#leavetablereq{}, _From, StateData = #state{table = Table}) ->
+  Table:call(#p2t_leave{player = this()}),
+  NewStateData = StateData#state{table = undefined},
   {reply, ok, in_table, NewStateData};
-in_game(#g2p_finished{game = Game}, _From, StateData = #state{game = Game}) ->
-  NewStateData = StateData#state{game = undefined},
-  {reply, ok, in_table, NewStateData};
+in_game(#t2p_finished{}, _From, StateData) ->
+  {reply, ok, in_table, StateData};
 in_game(Event, From, StateData) ->
   handle_sync_event(Event, From, in_game, StateData).
 
@@ -116,11 +113,11 @@ handle_sync_event(_Event, _From, StateName, StateData) ->
 handle_info(_Info, StateName, StateData) ->
   {next_state, StateName, StateData}.
 
-terminate(Reason, StateName, #state{table = Table, game = Game, player_db = PlayerDb, chips = Chips}) ->
+terminate(Reason, StateName, #state{table = Table, player_db = PlayerDb, chips = Chips}) ->
   io:format("player ~p stoped for reason ~p~n", [this(), Reason]),
   LeftChips = case StateName of
     in_game ->
-      ok = Game:call(#p2g_action{player = this(), action = ?ACTION_FOLD}),
+      ok = Table:call(#p2t_action{player = this(), action = ?ACTION_FOLD}),
       {ok, Chips1} = Table:call(#p2t_leave{player = this()}),
       Chips1;
     in_table ->
@@ -138,10 +135,6 @@ code_change(_OldVsn, StateName, StateData, _Extra) ->
   {ok, StateName, StateData}.
 
 %% test
-
-dump(#player{pid = Pid}) ->
-  gen_fsm:sync_send_all_state_event(Pid, dump).
-
 test() ->
   test_join().
 

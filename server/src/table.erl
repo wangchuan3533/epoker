@@ -3,16 +3,16 @@
 -include("holdem.hrl").
 -include("messages_pb.hrl").
 
-%% API.
+%% api.
 -export([new/1, stop/1, call/2, cast/2]).
 
 %% test
--export([dump/1, test/0]).
+-export([test/0]).
 
 %% gen_fsm.
--export([init/1, init_game/1]).
--export([waiting/2, preflop/2, flop/2, turn/2, river/2, finished/2]).
--export([waiting/3, preflop/3, flop/3, turn/3, river/3, finished/3]).
+-export([init/1]).
+-export([waiting/2, preflop/2, flop/2, turn/2, river/2]).
+-export([waiting/3, preflop/3, flop/3, turn/3, river/3]).
 
 -export([handle_event/3]).
 -export([handle_sync_event/4]).
@@ -32,7 +32,6 @@
   talked = [],
   all_ined = [],
   folded = [],
-  table,
   deck,
   pots = [],
   cards = [],
@@ -48,7 +47,7 @@
   bet = 0
 }).
 
-%% API.
+%% public api.
 new(Opts) ->
   {ok, Pid} = gen_fsm:start_link(?MODULE, Opts, []),
   #table{pid = Pid}.
@@ -62,10 +61,9 @@ call(Msg, #table{pid = Pid}) ->
 cast(Msg, #table{pid = Pid}) ->
   gen_fsm:send_event(Pid, Msg).
 
+%% internal functions
 this() ->
   #table{pid = self()}.
-
-%% internal functions
 
 card_num(preflop) -> 0;
 card_num(flop) -> 3;
@@ -139,40 +137,14 @@ next(_StataName, StateData = #state{talked = [], all_ined = []}) ->
 next(StateName, StateData) ->
   {reply, ok, StateName, StateData}.
 
+%% TODO give rewards, reset table
 showdown(StateName, StateData = #state{cards = Cards, deck = Deck}) ->
   NewStateName = river,
   NewCards = lists:append(Cards, [Deck:call(get) || _ <- lists:seq(1, card_num(NewStateName) - card_num(StateName))]),
   ok = io:format("showdown from ~p data ~p ~n", [StateName, StateData]),
   {stop, finished, ok, StateData#state{cards = NewCards}}.
 
-init_game([{Players}]) ->
-  ok = lists:foreach(fun(Player) ->
-    ok = Player:call(#g2p_started{game = this()})
-  end, Players),
-
-  Seats = [#seat{player = Player} || Player <- Players],
-  [H | T] = Seats,
-  Seats1 = lists:append(T, [H]),
-
-  %% small blind
-  [SmallBlindSeat | T1] = Seats1,
-  Chips1 = SmallBlindSeat#seat.chips - ?SMALL_BLIND,
-  NewSmallBlindSeat = SmallBlindSeat#seat{chips = Chips1, bet = ?SMALL_BLIND},
-  Seats2 = lists:append(T1, [NewSmallBlindSeat]),
-
-  %% big blind
-  [BigBlindSeat | T2] = Seats2,
-  Chips2 = BigBlindSeat#seat.chips - ?BIG_BLIND,
-  NewBigBlindSeat = BigBlindSeat#seat{chips = Chips2, bet = ?BIG_BLIND},
-  Seats3 = lists:append(T2, [NewBigBlindSeat]),
-
-  %% preflop cards
-  Deck = deck:new(),
-  Seats4 = [Seat#seat{cards = [Deck:call(get), Deck:call(get)]} || Seat <- Seats3],
-  {ok, preflop, #state{not_talked = Seats4, deck = Deck, bet = ?BIG_BLIND, pots = [0]}}.
-%% gen_fsm.
-
-
+%% gen_fsm callbacks.
 init({Id, Lobby}) ->
   {ok, Timer} = timer:send_interval(1000, self(), tick),
   {ok, waiting, #state{id = Id, lobby = Lobby, timer = Timer}}.
@@ -184,9 +156,10 @@ waiting(start, StateData = #state{seats = Seats}) ->
   true ->
     %% notify player game started
     ok = lists:foreach(fun(#seat{player = Player}) ->
-      ok = Player:call(#g2p_started{game = this()})
+      ok = Player:call(#t2p_started{})
     end, Seats),
 
+    %% TODO kick players without enough chips
     %% first is dealer
     [H | T] = Seats,
     Seats1 = lists:append(T, [H]),
@@ -206,7 +179,7 @@ waiting(start, StateData = #state{seats = Seats}) ->
     %% preflop cards
     Deck = deck:new(),
     Seats4 = [Seat#seat{cards = [Deck:call(get), Deck:call(get)]} || Seat <- Seats3],
-    {next_state, preflop, StateData#state{not_talked = Seats4, deck = Deck, bet = ?BIG_BLIND, pots = [0]}}
+    {next_state, preflop, StateData#state{not_talked = Seats4, talked = [], all_ined = [], folded = [], deck = Deck, bet = ?BIG_BLIND, pots = [0]}}
   end;
 waiting(Event, StateData) ->
   handle_event(Event, waiting, StateData).
@@ -215,38 +188,33 @@ waiting(Event, From, StateData) ->
 
 preflop(Event, StateData) ->
   handle_event(Event, preflop, StateData).
-preflop(Action = #p2g_action{}, _From, StateData) ->
+preflop(Action = #p2t_action{}, _From, StateData) ->
   handle_action(Action, preflop, StateData);
 preflop(Event, From, StateData) ->
   handle_sync_event(Event, From, preflop, StateData).
 
 flop(Event, StateData) ->
   handle_event(Event, flop, StateData).
-flop(Action = #p2g_action{}, _From, StateData) ->
+flop(Action = #p2t_action{}, _From, StateData) ->
   handle_action(Action, flop, StateData);
 flop(Event, From, StateData) ->
   handle_sync_event(Event, From, flop, StateData).
 
 turn(Event, StateData) ->
   handle_event(Event, turn, StateData).
-turn(Action = #p2g_action{}, _From, StateData) ->
+turn(Action = #p2t_action{}, _From, StateData) ->
   handle_action(Action, turn, StateData);
 turn(Event, From, StateData) ->
   handle_sync_event(Event, From, turn, StateData).
 
 river(Event, StateData) ->
   handle_event(Event, river, StateData).
-river(Action = #p2g_action{}, _From, StateData) ->
+river(Action = #p2t_action{}, _From, StateData) ->
   handle_action(Action, river, StateData);
 river(Event, From, StateData) ->
   handle_sync_event(Event, From, river, StateData).
 
-finished(Event, StateData) ->
-  handle_event(Event, finished, StateData).
-finished(_Event, _From, StateData) ->
-  {stop, finished, ok, StateData}.
-
-handle_action(#p2g_action{player = Player, action = ?ACTION_FOLD}, StateName, StateData = #state{not_talked = NotTalked, talked = Talked, folded = Folded, all_ined = AllIned}) ->
+handle_action(#p2t_action{player = Player, action = ?ACTION_FOLD}, StateName, StateData = #state{not_talked = NotTalked, talked = Talked, folded = Folded, all_ined = AllIned}) ->
   ok = io:format("player ~w foled, not_talked: ~w, talked: ~w, folded: ~w, all_ined: ~w~n", [Player, NotTalked, Talked, Folded, AllIned]),
   case lists:keyfind(Player, #seat.player, Folded) of
     #seat{} -> {reply, already_folded, StateName, StateData};
@@ -270,7 +238,7 @@ handle_action(#p2g_action{player = Player, action = ?ACTION_FOLD}, StateName, St
   end;
 
 %% raise
-handle_action(#p2g_action{player = Player, action = ?ACTION_RAISE, amount = Amount}, StateName, StateData = #state{not_talked = NotTalked, talked = Talked, all_ined = AllIned, bet = Bet}) when Amount > 0 ->
+handle_action(#p2t_action{player = Player, action = ?ACTION_RAISE, amount = Amount}, StateName, StateData = #state{not_talked = NotTalked, talked = Talked, all_ined = AllIned, bet = Bet}) when Amount > 0 ->
   ok = io:format("player ~w action ~w amount ~w~n", [Player, ?ACTION_RAISE, Amount]),
   [NextTalk = #seat{player = NextTalkPlayer, bet = NextTalkBet, chips = NextTalkChips} | OtherNotTalked] = NotTalked,
   if Player == NextTalkPlayer ->
@@ -294,7 +262,7 @@ handle_action(#p2g_action{player = Player, action = ?ACTION_RAISE, amount = Amou
   end;
 
 %% check or call
-handle_action(#p2g_action{player = Player, action = ?ACTION_RAISE, amount = 0}, StateName, StateData = #state{not_talked = NotTalked, talked = Talked, all_ined = AllIned, bet = Bet}) ->
+handle_action(#p2t_action{player = Player, action = ?ACTION_RAISE, amount = 0}, StateName, StateData = #state{not_talked = NotTalked, talked = Talked, all_ined = AllIned, bet = Bet}) ->
   ok = io:format("player ~w action ~w amount ~w~n", [Player, ?ACTION_RAISE, 0]),
   [NextTalk = #seat{player = NextTalkPlayer, bet = NextTalkBet, chips = NextTalkChips} | OtherNotTalked] = NotTalked,
   if Player == NextTalkPlayer ->
@@ -378,8 +346,5 @@ code_change(_OldVsn, StateName, StateData, _Extra) ->
   {ok, StateName, StateData}.
 
 %% tests
-dump(#table{pid = Pid}) ->
-  gen_fsm:sync_send_all_state_event(Pid, dump).
-
 test() ->
   ok.
