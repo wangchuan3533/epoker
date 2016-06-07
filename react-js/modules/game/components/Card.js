@@ -3,10 +3,11 @@ import {
   black,
   red500
 } from 'material-ui/styles/colors'
+import Container from './Container'
 
-const Card = ({card}) => {
-  let suit, color, rank, style
-
+const getStyle = (card) => {
+  let suit, color, rank
+  
   switch (Math.floor(card / 13)) {
     case 0:
       suit = '♥'
@@ -25,6 +26,7 @@ const Card = ({card}) => {
       color = black
       break
   }
+  
   rank = Math.floor(card % 13)
   if (rank < 9) {
     rank = '' + (rank + 2)
@@ -37,43 +39,32 @@ const Card = ({card}) => {
   } else if (rank == 12) {
     rank = 'A'
   }
+  
+  return {suit, color, rank}
+}
 
-  style = {
-    width: 40,
-    height: 56,
-    position: 'relative',
-    borderStyle: 'dotted',
-    borderWidth: 1,
-    margin: 4,
-    color
-  }
+const containerStyle = {
+  fillOpacity: 0.1,
+}
+
+
+const Card = ({x, y, card}) => {
+  const {suit, color, rank} = getStyle(card)
+  const textStyle = { fontSize: 10, fill: color }
+  
   return (
-    <div style={style}>
-      <div style={{
-        width: '100%',
-        position: 'absolute',
-        top: 0,
-        textAlign: 'left'
-      }}>
+    <Container x={x} y={y}>
+      <rect height="56" width="40" style={containerStyle} />
+      <text x="3" y="10" style={textStyle}>
         {suit}
-      </div>
-      <div style={{
-        width: '100%',
-        position: 'absolute',
-        top: '37%',
-        textAlign: 'center'
-      }}>
+      </text>
+      <text x="16" y="31" style={textStyle}>
         {rank}
-      </div>
-      <div style={{
-        width: '100%',
-        position: 'absolute',
-        bottom: 0,
-        textAlign: 'right'
-      }}>
+      </text>
+      <text x="32" y="53" style={textStyle}>
         {suit}
-      </div>
-    </div>
+      </text>
+    </Container>
   )
 }
 

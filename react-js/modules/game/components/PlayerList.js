@@ -1,10 +1,11 @@
 import React from 'react'
+import Container from './Container'
 import Player from './Player'
 
-const PlayerList = ({players}) => (
-  <div>
-    {players.map(player => (<Player key={player.id} name="hello" chips="100" />))}
-  </div>
+const PlayerList = ({x, y, players}) => (
+  <Container x={x} y={y} >
+    {players.map((player, index) => (<Player x={200 * index} y={300} key={player.id} {...player} />))}
+  </Container>
 )
 
 export default PlayerList

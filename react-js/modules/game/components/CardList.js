@@ -1,16 +1,14 @@
 import React from 'react'
 import Card from './Card'
+import Container from './Container'
 
-const CardList = ({cards}) => {
+const CardList = ({x, y, cards}) => {
   return (
-    <div style={{
-        display: 'flex',
-        flexDirection: 'row'
-      }}>
-      {cards.map((card) => {
-        return <Card {...card} />
+    <Container x={x} y={y}>
+      {cards.map((card, index) => {
+        return <Card x={index * 50} y={0} {...card} />
       })}
-    </div>
+    </Container>
   )
 }
 
