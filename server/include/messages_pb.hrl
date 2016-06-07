@@ -102,6 +102,20 @@
 }).
 -endif.
 
+-ifndef(GAMESTARTEDNTF_PB_H).
+-define(GAMESTARTEDNTF_PB_H, true).
+-record(gamestartedntf, {
+    
+}).
+-endif.
+
+-ifndef(GAMEFINISHEDNTF_PB_H).
+-define(GAMEFINISHEDNTF_PB_H, true).
+-record(gamefinishedntf, {
+    
+}).
+-endif.
+
 -ifndef(PLAYERPB_PB_H).
 -define(PLAYERPB_PB_H, true).
 -record(playerpb, {

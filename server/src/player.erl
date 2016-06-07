@@ -44,6 +44,20 @@ notice(Msg, #player{pid = Pid}) ->
 this() ->
   #player{pid = self()}.
 
+%% inner funcs
+leave_table(StateName, StateData = #state{table = Table, chips = Chips, id = Id}) ->
+  case StateName of
+    in_game ->
+      ok = Table:cast(#p2t_action{player = this(), action = ?ACTION_FOLD}),
+      {ok, LeftChips} = Table:call(#p2t_leave{player = this(), id = Id}),
+      {reply, ok, in_lobby, StateData#state{table = undefined, chips = Chips + LeftChips}};
+    in_table ->
+      {ok, LeftChips} = Table:call(#p2t_leave{player = this(), id = Id}),
+      {reply, ok, in_lobby, StateData#state{table = undefined, chips = Chips + LeftChips}};
+    in_lobby ->
+      {reply, ok, in_lobby, StateData}
+  end.
+
 %% gen_fsm.
 init([{PlayerDb = #player_db{id = Id, name = Name, chips = Chips}, Lobby, Ws}]) ->
   {ok, in_lobby, #state{lobby = Lobby, player_db = PlayerDb, id = Id, name = Name, chips = Chips, ws = Ws}}.
@@ -68,10 +82,6 @@ in_lobby(Event, From, StateData) ->
 in_table(Event, StateData) ->
   handle_event(Event, in_table, StateData).
 
-in_table(#leavetablereq{}, _From, StateData = #state{table = Table}) ->
-  ok = Table:call(#p2t_leave{player = this()}),
-  NewStateData = StateData#state{table = undefined},
-  {reply, ok, in_lobby, NewStateData};
 in_table(#t2p_started{}, _From, StateData) ->
   ok = io:format("t2p_started~n"),
   {reply, ok, in_game, StateData};
@@ -81,13 +91,9 @@ in_table(Event, From, StateData) ->
 in_game(Event, StateData) ->
   handle_event(Event, in_game, StateData).
 
-in_game(#actionreq{action = Action, amount = Amount}, _From, StateData = #state{table = Table}) ->
-  Ret = Table:call(#p2t_action{player = this(), action = Action, amount = Amount}),
+in_game(#actionreq{action = Action, amount = Amount}, _From, StateData = #state{table = Table, id = Id}) ->
+  Ret = Table:call(#p2t_action{player = this(), id= Id, action = Action, amount = Amount}),
   {reply, Ret, in_game, StateData};
-in_game(#leavetablereq{}, _From, StateData = #state{table = Table}) ->
-  Table:call(#p2t_leave{player = this()}),
-  NewStateData = StateData#state{table = undefined},
-  {reply, ok, in_table, NewStateData};
 in_game(#t2p_finished{}, _From, StateData) ->
   {reply, ok, in_table, StateData};
 in_game(Event, From, StateData) ->
@@ -103,6 +109,9 @@ handle_event(_Event, StateName, StateData) ->
 handle_sync_event(dump, _From, StateName, StateData) ->
   {reply, {StateName, StateData}, StateName, StateData};
 
+handle_sync_event(#leavetablereq{}, _From, StateName, StateData) ->
+  leave_table(StateName, StateData);
+
 handle_sync_event(#listtablereq{}, _From, StateName, StateData = #state{lobby = Lobby}) ->
   TableIds = lists:map(fun({K, _V}) -> K end, Lobby:call(#p2l_list_tables{})),
   {reply, TableIds, StateName, StateData};
@@ -113,38 +122,15 @@ handle_sync_event(_Event, _From, StateName, StateData) ->
 handle_info(_Info, StateName, StateData) ->
   {next_state, StateName, StateData}.
 
-terminate(Reason, StateName, #state{table = Table, player_db = PlayerDb, chips = Chips}) ->
+terminate(Reason, StateName, StateData = #state{player_db = PlayerDb}) ->
   io:format("player ~p stoped for reason ~p~n", [this(), Reason]),
-  LeftChips = case StateName of
-    in_game ->
-      ok = Table:call(#p2t_action{player = this(), action = ?ACTION_FOLD}),
-      {ok, Chips1} = Table:call(#p2t_leave{player = this()}),
-      Chips1;
-    in_table ->
-      {ok, Chips1} = Table:call(#p2t_leave{player = this()}),
-      ok = io:format("leave table called~n"),
-      Chips1;
-    in_lobby ->
-      0
-  end,
-
+  {reply, ok, in_lobby, #state{chips = Chips}} = leave_table(StateName, StateData),
   %% save back to db
-  ok = storage:set(PlayerDb#player_db{chips = Chips + LeftChips}).
+  ok = storage:set(PlayerDb#player_db{chips = Chips}).
 
 code_change(_OldVsn, StateName, StateData, _Extra) ->
   {ok, StateName, StateData}.
 
 %% test
 test() ->
-  test_join().
-
-test_join() ->
-  L = lobby:new(),
-  U = #player_db{id = 1, name = 1},
-  P = player:new({U, L}),
-  {in_lobby, #state{table = undefined}} = P:dump(),
-  P:call(#jointablereq{table_id = -1}),
-  {in_table, #state{table = T}} = P:dump(),
-  ok = P:call(#leavetablereq{}),
-  T:stop(),
-  P:stop().
+  ok.

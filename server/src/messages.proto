@@ -17,6 +17,8 @@ enum MessageType {
     OTHER_JOIN_TABLE_NTF = 11;
     OTHER_LEAVE_TABLE_NTF = 12;
     OTHER_ACTION_NTF = 13;
+    GAME_STARTED_NTF  = 14;
+    GAME_FINISHED_NTF = 15;
 }
 
 message Message {
@@ -81,6 +83,12 @@ message OtherActionNtf {
   required string player_id = 1;
   required ActionType action = 2;
   required uint32 amount = 3;
+}
+
+message GameStartedNtf {
+}
+
+message GameFinishedNtf {
 }
 
 message PlayerPb {

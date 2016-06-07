@@ -32,6 +32,10 @@ decode(Bin) ->
       messages_pb:decode_otherleavetablentf(Data);
     #message{type = 'OTHER_ACTION_NTF', data = Data} ->
       messages_pb:decode_otheractionntf(Data);
+    #message{type = 'GAME_STARTED_NTF', data = Data} ->
+      messages_pb:decode_gamestartedntf(Data);
+    #message{type = 'GAME_FINISHED_NTF', data = Data} ->
+      messages_pb:decode_gamefinishedntf(Data);
     _Other ->
       error
   end.
@@ -65,6 +69,10 @@ encode(Msg) ->
       messages_pb:encode(#message{type = 'OTHER_LEAVE_TABLE_NTF', data = Encoded});
     #otheractionntf{} ->
       messages_pb:encode(#message{type = 'OTHER_ACTION_NTF', data = Encoded});
+    #gamestartedntf{} ->
+      messages_pb:encode(#message{type = 'GAME_STARTED_NTF', data = Encoded});
+    #gamefinishedntf{} ->
+      messages_pb:encode(#message{type = 'GAME_FINISHED_NTF', data = Encoded});
     _Other ->
       error
   end.

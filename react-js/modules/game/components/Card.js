@@ -1,7 +1,8 @@
 import React from 'react'
-import styles from 'material-ui/lib/styles'
-
-const colors = styles.Colors
+import {
+  black,
+  red500
+} from 'material-ui/styles/colors'
 
 const Card = ({card}) => {
   let suit, color, rank, style
@@ -9,19 +10,19 @@ const Card = ({card}) => {
   switch (Math.floor(card / 13)) {
     case 0:
       suit = '♥'
-      color = colors.red500
+      color = red500
       break
     case 1:
       suit = '♠'
-      color = colors.black
+      color = black
       break
     case 2:
       suit = '♦'
-      color = colors.red500
+      color = red500
       break
     case 3:
       suit = '♣'
-      color = colors.black
+      color = black
       break
   }
   rank = Math.floor(card % 13)

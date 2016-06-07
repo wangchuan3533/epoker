@@ -8,6 +8,7 @@
 -define(BIG_BLIND, 200).
 -define(INIT_CHIPS, 10000).
 -define(RECORD_TO_TUPLELIST(Rec, Ref), lists:zip(record_info(fields, Rec),tl(tuple_to_list(Ref)))).
+-define(ELSE, true).
 
 -record(deck, {pid}).
 -record(table, {pid}).
@@ -20,8 +21,8 @@
 
 %% player to table protocols
 -record(p2t_join, {player, id, name, chips}).
--record(p2t_leave, {player}).
--record(p2t_action, {player, action, amount = 0}).
+-record(p2t_leave, {player, id}).
+-record(p2t_action, {player, id, action, amount = 0}).
 
 %% player to lobby protocols
 -record(p2l_get_table, {table_id = -1}).
