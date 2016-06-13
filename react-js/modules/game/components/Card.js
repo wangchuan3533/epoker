@@ -3,7 +3,7 @@ import {
   black,
   red500
 } from 'material-ui/styles/colors'
-import Container from './Container'
+import Group from './Group'
 
 const getStyle = (card) => {
   let suit, color, rank
@@ -48,23 +48,25 @@ const containerStyle = {
 }
 
 
-const Card = ({x, y, card}) => {
+const Card = (props) => {
+  const {card} = props
   const {suit, color, rank} = getStyle(card)
-  const textStyle = { fontSize: 10, fill: color }
+  const suitStyle = { fontSize: 12, fill: color }
+  const rankStyle = { fontSize: 16, fill: color }
   
   return (
-    <Container x={x} y={y}>
+    <Group {...props}>
       <rect height="56" width="40" style={containerStyle} />
-      <text x="3" y="10" style={textStyle}>
-        {suit}
-      </text>
-      <text x="16" y="31" style={textStyle}>
+      <text x="6" y="10" style={suitStyle}>
         {rank}
       </text>
-      <text x="32" y="53" style={textStyle}>
+      <text x="15" y="34" style={rankStyle}>
         {suit}
       </text>
-    </Container>
+      <text x="29" y="53" style={suitStyle}>
+        {rank}
+      </text>
+    </Group>
   )
 }
 

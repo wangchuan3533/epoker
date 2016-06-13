@@ -1,14 +1,15 @@
 import React from 'react'
 import Card from './Card'
-import Container from './Container'
+import Group from './Group'
 
-const CardList = ({x, y, cards}) => {
+const CardList = (props) => {
+  const {cards} = props
   return (
-    <Container x={x} y={y}>
+    <Group {...props}>
       {cards.map((card, index) => {
-        return <Card x={index * 50} y={0} {...card} />
+        return <Card x={index * 50} y={0} key={card} card={card} />
       })}
-    </Container>
+    </Group>
   )
 }
 

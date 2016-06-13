@@ -1,11 +1,15 @@
 import React from 'react'
-import Container from './Container'
+import Group from './Group'
 import Player from './Player'
 
-const PlayerList = ({x, y, players}) => (
-  <Container x={x} y={y} >
-    {players.map((player, index) => (<Player x={200 * index} y={300} key={player.id} {...player} />))}
-  </Container>
-)
+const PlayerList = (props) => {
+  const {players} = props
+  
+  return (
+    <Group {...props} >
+      {players.map((player, index) => (<Player x={200 * index} y={100} key={player.id} {...player} />))}
+    </Group>
+  )
+}
 
 export default PlayerList

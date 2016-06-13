@@ -21,6 +21,11 @@ enum MessageType {
     GAME_FINISHED_NTF = 15;
 }
 
+enum ActionType {
+    ACTION_RAISE = 1;
+    ACTION_FOLD = 2;
+}
+
 message Message {
   required MessageType type = 1;
   required bytes data = 2;
@@ -55,11 +60,6 @@ message LeaveGameReq {
 
 message LeaveGameRes {
   required uint32 errno = 1;
-}
-
-enum ActionType {
-    ACTION_RAISE = 1;
-    ACTION_FOLD = 2;
 }
 
 message ActionReq {

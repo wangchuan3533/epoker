@@ -20,9 +20,9 @@
 %% protocols
 
 %% player to table protocols
--record(p2t_join, {player, id, name, chips}).
--record(p2t_leave, {player, id}).
--record(p2t_action, {player, id, action, amount = 0}).
+-record(p2t_join, {player, player_id, name, chips}).
+-record(p2t_leave, {player, player_id}).
+-record(p2t_action, {player, player_id, action, amount = 0}).
 
 %% player to lobby protocols
 -record(p2l_get_table, {table_id = -1}).
@@ -30,8 +30,6 @@
 
 %% table to player protocols
 -record(t2p_chat, {player, text}).
--record(t2p_started, {}).
--record(t2p_finished, {}).
 -record(t2p_action, {player, action, amount}).
 -record(t2p_reward, {reward}).
 -record(t2p_state_update, {state}).

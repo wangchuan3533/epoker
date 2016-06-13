@@ -84,7 +84,9 @@ handle_call(#t2l_table_not_full{table_id = TableId}, _From, State = #state{full_
 
 
 handle_call(dump, _From, State = #state{full_tables = FullTables, not_full_tables = NotFullTables, max_table_id = MaxTableId}) ->
-  {reply, {ets:tab2list(FullTables), ets:tab2list(NotFullTables), MaxTableId}, State};
+  FullTableDump = ets:foldl(fun({TableId, Table}, Acc) -> [{TableId, Table:call(dump)} | Acc] end, [], FullTables),
+  NotFullTableDump = ets:foldl(fun({TableId, Table}, Acc) -> [{TableId, Table:call(dump)} | Acc] end, [], NotFullTables),
+  {reply, {{full_tables, FullTableDump}, {not_full_tables, NotFullTableDump}, ets:tab2list(FullTables), ets:tab2list(NotFullTables), MaxTableId}, State};
 handle_call(_Request, _From, State) ->
   {reply, ignored, State}.
 
