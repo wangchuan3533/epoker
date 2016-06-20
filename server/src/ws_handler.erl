@@ -37,14 +37,15 @@ websocket_handle({text, Text}, Req, State = #state{player = Player}) ->
   {reply, {text, Resp}, Req, State};
 websocket_handle({binary, Data}, Req, State = #state{player = Player}) ->
   Msg = protocol:decode(Data),
+  ok = io:format("~p~n", [{req, Msg}]),
   {ok, Res} = Player:call(Msg),
-  ok = io:format("~p~n", [{debug, Res}]),
+  ok = io:format("~p~n", [{res, Res}]),
   {reply, {binary, protocol:encode(Res)}, Req, State};
 websocket_handle(_Frame, Req, State) ->
   {ok, Req, State}.
 
 websocket_info({notice, Message}, Req, State) ->
-  ok = io:format("notice ~p~n", [{debug, Message}]),
+  ok = io:format("~p~n", [{notice, Message}]),
   {reply, {binary, protocol:encode(Message)}, Req, State};
 websocket_info(_Info, Req, State) ->
   {ok, Req, State}.

@@ -1,14 +1,10 @@
 -define(MAX_PLAYERS, 10).
 -define(MIN_PLAYERS, 2).
 
--define(ACTION_RAISE, 1).
--define(ACTION_FOLD, 2).
-
 -define(SMALL_BLIND, 100).
 -define(BIG_BLIND, 200).
 -define(INIT_CHIPS, 10000).
 -define(RECORD_TO_TUPLELIST(Rec, Ref), lists:zip(record_info(fields, Rec),tl(tuple_to_list(Ref)))).
--define(ELSE, true).
 
 -record(deck, {pid}).
 -record(table, {pid}).

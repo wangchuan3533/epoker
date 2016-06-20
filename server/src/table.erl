@@ -84,6 +84,12 @@ next_stage(river) -> showdown.
 % broadcast
 broadcast(Msg, Seats) ->
   dict:fold(fun(_PlayerId, #seat{player = Player}, ok) -> Player:cast(Msg) end, ok, Seats).
+  
+batchChangeStatus(PlayerIds, Status, Seats) ->
+  lists:foldl(fun(PlayerId, SeatsAcc) ->
+    Seat = dict:fetch(PlayerId, SeatsAcc),
+    dict:store(PlayerId, Seat#seat{status = Status}, SeatsAcc)
+  end, Seats, PlayerIds).
 
 % collect chips from array of seats
 collect_by_bet(Boundary, PlayerIds, Seats) ->
@@ -123,13 +129,19 @@ next(StateName, StateData = #state{talked = Talked, folded = Folded, all_ined = 
     % river is the last stage, go to showdown
     river -> showdown(StateName, StateData);
     _ ->
-      %% collect pots
-      {NewPots, NewSeats} = collect_all(Pots, {Talked, Folded, AllIned}, Seats),
-      % new cards
+      
+      % next stage
       NewStateName = next_stage(StateName),
       AddCardNum = card_num(NewStateName) - card_num(StateName),
       NewCards = lists:append(Cards, [Deck:call(get) || _ <- lists:seq(1, AddCardNum)]),
-      {reply, ok, NewStateName, StateData#state{not_talked = lists:reverse(Talked), talked = [], bet = 0, pots = NewPots, cards = NewCards, seats = NewSeats}}
+      
+      %% collect pots
+      {NewPots, Seats1} = collect_all(Pots, {Talked, Folded, AllIned}, Seats),
+      
+      % update seat status
+      Seats2 = batchChangeStatus(Talked, not_talked, Seats1),
+      
+      {reply, ok, NewStateName, StateData#state{not_talked = lists:reverse(Talked), talked = [], bet = 0, pots = NewPots, cards = NewCards, seats = Seats2}}
   end;
 %% more than one player playing
 next(StateName, StateData = #state{talked = Talked, all_ined = AllIned}) when length(Talked) + length(AllIned) > 1 ->
@@ -159,18 +171,19 @@ showdown(StateName, StateData = #state{cards = Cards, deck = Deck}) ->
   {reply, finished, ok, StateData#state{cards = NewCards}}.
   
 % fold
-handle_action(#p2t_action{player_id = PlayerId, action = ?ACTION_FOLD}, StateName, StateData = #state{not_talked = NotTalked, folded = Folded, seats = Seats}) ->
+handle_action(#p2t_action{player_id = PlayerId, action = 'ACTION_FOLD'}, StateName, StateData = #state{not_talked = NotTalked, folded = Folded, seats = Seats}) ->
   Seat = #seat{status = Status} = dict:fetch(PlayerId, Seats),
   case Status of
     not_talked ->
       NewSeat = Seat#seat{status = folded},
       next(StateName, StateData#state{not_talked = lists:delete(PlayerId, NotTalked), folded = [PlayerId | Folded], seats = dict:store(PlayerId, NewSeat, Seats)});
-    _Others ->
-      {reply, wrong_status, StateName, StateData}
+    % TODO
+    folded ->
+      {reply, ok, StateName, StateData}
   end;
   
 % check or call
-handle_action(#p2t_action{player_id = PlayerId, action = ?ACTION_RAISE, amount = 0}, StateName, StateData = #state{not_talked = NotTalked, talked = Talked, all_ined = AllIned, seats = Seats, bet = Bet}) ->
+handle_action(#p2t_action{player_id = PlayerId, action = 'ACTION_RAISE', amount = 0}, StateName, StateData = #state{not_talked = NotTalked, talked = Talked, all_ined = AllIned, seats = Seats, bet = Bet}) ->
   case NotTalked of
     [PlayerId | Tail] ->
       Seat = dict:fetch(PlayerId, Seats),
@@ -186,7 +199,7 @@ handle_action(#p2t_action{player_id = PlayerId, action = ?ACTION_RAISE, amount =
       {reply, ignored, StateName, StateData}
   end;
   
-handle_action(#p2t_action{player_id = PlayerId, action = ?ACTION_RAISE, amount = Amount}, StateName, StateData = #state{not_talked = NotTalked, talked = Talked, all_ined = AllIned, seats = Seats, bet = Bet}) ->
+handle_action(#p2t_action{player_id = PlayerId, action = 'ACTION_RAISE', amount = Amount}, StateName, StateData = #state{not_talked = NotTalked, talked = Talked, all_ined = AllIned, seats = Seats, bet = Bet}) ->
   case NotTalked of
     [PlayerId | Tail] ->
       Seat = dict:fetch(PlayerId, Seats),
@@ -222,6 +235,8 @@ waiting(tick, StateData = #state{seats = Seats, queue = Queue}) ->
       
       % TODO kick players without enough chips
       
+      
+      
       % DEALER
       [DealerPlayerId | Tail1] = Queue,
       Queue1 = lists:append(Tail1, [DealerPlayerId]),
@@ -244,7 +259,8 @@ waiting(tick, StateData = #state{seats = Seats, queue = Queue}) ->
       Seats2 = dict:store(BigBlindPlayerId, NewBigBlindSeat, Seats1),
       
       Deck = deck:new(),
-      Seats3 = dict:map(fun(_PlayerId, Seat) -> Seat#seat{cards = [Deck:call(get), Deck:call(get)]} end, Seats2),
+      Seats3 = dict:map(fun(_PlayerId, Seat) -> Seat#seat{status = not_talked, cards = [Deck:call(get), Deck:call(get)]} end, Seats2),
+      
       {next_state, preflop, StateData#state{seats = Seats3, queue = Queue1, not_talked = Queue3, talked = [], all_ined = [], folded = [], deck = Deck, bet = ?BIG_BLIND, pots = [0]}}
   end;
 
@@ -273,8 +289,8 @@ river(Event, StateData) ->
 river(Event, From, StateData) ->
   handle_sync_event(Event, From, river, StateData).
 
-handle_event(Event, StateName, StateData) ->
-  ok = io:format("event ~p~n", [Event]),
+handle_event(_Event, StateName, StateData) ->
+  %% ok = io:format("event ~p~n", [Event]),
   {next_state, StateName, StateData}.
 
 %% player join

@@ -22,7 +22,6 @@ class Main extends React.Component {
     super(props)
   }
   componentDidMount() {
-    const {dispatch} = this.props
   }
   
   render() {
@@ -36,7 +35,7 @@ class Main extends React.Component {
         </div>
         {state.get('started') ? (
           <div style={controlStyle}>
-            <Controls />
+            <Controls actions={actions}/>
           </div>
         ) : null}
       </div>

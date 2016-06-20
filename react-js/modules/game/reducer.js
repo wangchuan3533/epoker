@@ -1,19 +1,22 @@
 import { handleActions } from 'redux-actions'
 import {fromJS} from 'immutable'
 import Protocols from '../../protocols'
-const {MessageType, decode} = Protocols
+const {MessageType, ActionType, decode} = Protocols
 
 import {
   PROTOCOL_RECEIVED,
+  WS_CONNECTED,
 } from './actions'
 
 const initialState = fromJS({
   tableId: -1,
   players: [],
   started: false,
+  transport: null,
 })
 
 export default handleActions({
+  [WS_CONNECTED]: (state, {transport}) => state.set('transport', transport),
   [PROTOCOL_RECEIVED]: (state, {data}) => {
     const msg = decode(data)
     console.log(`received protocol: ${msg}`)

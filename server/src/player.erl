@@ -48,7 +48,7 @@ leave_table(in_table, StateData = #state{table = Table, chips = Chips, player_id
   {ok, LeftChips} = Table:call(#p2t_leave{player = this(), player_id = PlayerId}),
   leave_table(in_lobby, StateData#state{chips = Chips + LeftChips});
 leave_table(in_game, StateData = #state{table = Table, player_id = PlayerId}) ->
-  ok = Table:call(#p2t_action{player = this(), player_id = PlayerId, action = ?ACTION_FOLD}),
+  Table:call(#p2t_action{player = this(), player_id = PlayerId, action = 'ACTION_FOLD'}),
   leave_table(in_table, StateData).
 
 %% gen_fsm.
@@ -87,8 +87,10 @@ in_game(Event, StateData) ->
   handle_event(Event, in_game, StateData).
 
 in_game(#actionreq{action = Action, amount = Amount}, _From, StateData = #state{table = Table, player_id = PlayerId}) ->
-  Ret = Table:call(#p2t_action{player = this(), player_id = PlayerId, action = Action, amount = Amount}),
-  {reply, Ret, in_game, StateData};
+  ok = Table:call(#p2t_action{player = this(), player_id = PlayerId, action = Action, amount = Amount}),
+  Ret = #actionres{errno = 0},
+  {reply, {ok, Ret}, in_game, StateData};
+  
 in_game(Event, From, StateData) ->
   handle_sync_event(Event, From, in_game, StateData).
 
